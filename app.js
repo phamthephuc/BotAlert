@@ -34,7 +34,7 @@ var date = new Date().getDay();
 schedule.scheduleJob('0 0 * * *', () => {
     "use strict";
     date = (new Date()).getDate();
-    console.log("BEGIN NEW DATE")
+    console.log("BEGIN NEW DATE");
 });
 
 
