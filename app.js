@@ -30,17 +30,11 @@ const timesInCreaseLimit = 4;
 
 const serverPort = 9090;
 
-//var rule = new schedule.RecurrenceRule();
-//rule.minute = 0;
-//rule.second = 0;
-//rule.hour = 0;
-///**///rule.dayOfWeek =/*/**/*/
-
 var date = new Date().getDay();
 schedule.scheduleJob('0 0 * * *', () => {
     "use strict";
     date = (new Date()).getDate();
-    console.log("BEGIN NEW DATE");
+    console.log("BEGIN NEW DATE")
 });
 
 
@@ -74,7 +68,8 @@ function createDatabase() {
     });
 }
 
-var doNothing = function (err) {};
+var doNothing = function (err) {
+};
 
 function createCollection(nameCollection) {
     "use strict";
@@ -209,9 +204,9 @@ createDatabase();
 
 function getIpWithNormalFormat(ipClient) {
     "use strict";
-    var regrex = /(\d)+\.(\d)+\.(\d)+\.(\d)+/gi;
-    if (ipClient.match(regrex)) {
-        return ipClient.match(regrex)[0];
+    var regex = /(\d)+\.(\d)+\.(\d)+\.(\d)+/gi;
+    if (ipClient.match(regex)) {
+        return ipClient.match(regex)[0];
     } else {
         return null;
     }
@@ -393,74 +388,80 @@ class Ccu {
             }
         }, doNothing);
 
+        findDataReturnObjectFromCollection(url + "_MAX_TIMES_ALERT_CONTINIOUS", {}).then((result) => {
+            if (!result) {
+                insertDataToCollection(url + "_MAX_TIMES_ALERT_CONTINIOUS", {maxTimeAlert: maxTimeAlert}).then(doNothing, doNothing);
+            }
+        }, doNothing);
+
         this.fakeDataCCU();
     }
 
     fakeDataCCU() {
         "use strict";
-        var dataYesterday = [{index: 1620, date: 0, data: 1500}, {index: 1621, date: 0, data: -1}, {
+        var dataYesterday = [{index: 1620, date: 0, data: 1500}, {index: 1621, date: 0, data: 1}, {
             index: 1622,
             date: 0,
-            data: -2
+            data: 2
         }, {index: 1623, date: 0, data: 1500}, {index: 1624, date: 0, data: 1500}, {
             index: 1625,
             date: 0,
             data: 1500
-        }, {index: 1626, date: 0, data: 1500}, {index: 1627, date: 0, data: -1}, {index: 1628, date: 0, data: 1500}];
-        var dataYesterday1 = [{index: 1620, date: 1, data: 1500}, {index: 1621, date: 1, data: -1}, {
+        }, {index: 1626, date: 0, data: 1500}, {index: 1627, date: 0, data: 1}, {index: 1628, date: 0, data: 1500}];
+        var dataYesterday1 = [{index: 1620, date: 1, data: 1500}, {index: 1621, date: 1, data: 1}, {
             index: 1622,
             date: 1,
-            data: -2
+            data: 2
         }, {index: 1623, date: 1, data: 1500}, {index: 1624, date: 1, data: 1500}, {
             index: 1625,
             date: 1,
             data: 1500
-        }, {index: 1626, date: 1, data: 1500}, {index: 1627, date: 1, data: -1}, {index: 1628, date: 1, data: 1500}];
-        var dataYesterday2 = [{index: 1620, date: 2, data: 1500}, {index: 1621, date: 2, data: -1}, {
+        }, {index: 1626, date: 1, data: 1500}, {index: 1627, date: 1, data: 1}, {index: 1628, date: 1, data: 1500}];
+        var dataYesterday2 = [{index: 1620, date: 2, data: 1500}, {index: 1621, date: 2, data: 1}, {
             index: 1622,
             date: 2,
-            data: -2
+            data: 2
         }, {index: 1623, date: 2, data: 1500}, {index: 1624, date: 2, data: 1500}, {
             index: 1625,
             date: 2,
             data: 1500
-        }, {index: 1626, date: 2, data: 1500}, {index: 1627, date: 2, data: -1}, {index: 1628, date: 2, data: 1500}];
-        var dataYesterday3 = [{index: 1620, date: 3, data: 1500}, {index: 1621, date: 3, data: -1}, {
+        }, {index: 1626, date: 2, data: 1500}, {index: 1627, date: 2, data: 1}, {index: 1628, date: 2, data: 1500}];
+        var dataYesterday3 = [{index: 1620, date: 3, data: 1500}, {index: 1621, date: 3, data: 1}, {
             index: 1622,
             date: 3,
-            data: -2
+            data: 2
         }, {index: 1623, date: 3, data: 1500}, {index: 1624, date: 3, data: 1500}, {
             index: 1625,
             date: 3,
             data: 1500
-        }, {index: 1626, date: 3, data: 1500}, {index: 1627, date: 3, data: -1}, {index: 1628, date: 3, data: 1500}];
-        var dataYesterday4 = [{index: 1620, date: 4, data: 1500}, {index: 1621, date: 4, data: -1}, {
+        }, {index: 1626, date: 3, data: 1500}, {index: 1627, date: 3, data: 1}, {index: 1628, date: 3, data: 1500}];
+        var dataYesterday4 = [{index: 1620, date: 4, data: 1500}, {index: 1621, date: 4, data: 1}, {
             index: 1622,
             date: 4,
-            data: -2
+            data: 2
         }, {index: 1623, date: 4, data: 1500}, {index: 1624, date: 4, data: 1500}, {
             index: 1625,
             date: 4,
             data: 1500
-        }, {index: 1626, date: 4, data: 1500}, {index: 1627, date: 4, data: -1}, {index: 1628, date: 4, data: 1500}];
-        var dataYesterday5 = [{index: 1620, date: 5, data: 1500}, {index: 1621, date: 5, data: -1}, {
+        }, {index: 1626, date: 4, data: 1500}, {index: 1627, date: 4, data: 1}, {index: 1628, date: 4, data: 1500}];
+        var dataYesterday5 = [{index: 1620, date: 5, data: 1500}, {index: 1621, date: 5, data: 1}, {
             index: 1622,
             date: 5,
-            data: -2
+            data: 2
         }, {index: 1623, date: 5, data: 1500}, {index: 1624, date: 5, data: 1500}, {
             index: 1625,
             date: 5,
             data: 1500
-        }, {index: 1626, date: 5, data: 1500}, {index: 1627, date: 5, data: -1}, {index: 1628, date: 5, data: 1500}];
-        var dataYesterday6 = [{index: 1620, date: 6, data: 1500}, {index: 1621, date: 6, data: -1}, {
+        }, {index: 1626, date: 5, data: 1500}, {index: 1627, date: 5, data: 1}, {index: 1628, date: 5, data: 1500}];
+        var dataYesterday6 = [{index: 1620, date: 6, data: 1500}, {index: 1621, date: 6, data: 1}, {
             index: 1622,
             date: 6,
-            data: -2
+            data: 2
         }, {index: 1623, date: 6, data: 1500}, {index: 1624, date: 6, data: 1500}, {
             index: 1625,
             date: 6,
             data: 1500
-        }, {index: 1626, date: 6, data: 1500}, {index: 1627, date: 6, data: -1}, {index: 1628, date: 6, data: 1500}];
+        }, {index: 1626, date: 6, data: 1500}, {index: 1627, date: 6, data: 1}, {index: 1628, date: 6, data: 1500}];
         var listData = [];
         listData.push(dataYesterday);
         listData.push(dataYesterday1);
@@ -520,7 +521,7 @@ class Ccu {
                     });
 
                     if (num > 0) {
-                        var averageData = sum / num;
+                        var averageData = parseInt(sum / num);
                         findDataReturnObjectFromCollection(url + "_PERCENT", {}).then((rsMsg) => {
                             var percent = rsMsg.percent;
                             console.log("PERCENT : " + percent);
@@ -528,11 +529,24 @@ class Ccu {
                                 findDataReturnObjectFromCollection(url + "_week", {}).then((rs) => {
                                     if (rs) {
                                         var timesAlert = rs.timesAlert;
-                                        if (timesAlert < maxTimeAlert) {
-                                            bot.sendMessage(chatId, this.stringAlert(data, averageData, true));
-                                            timesAlert += 1;
-                                            updateDataFromCollection(this.url + "_week", {}, {timesAlert: timesAlert});
-                                        }
+                                        findDataReturnObjectFromCollection(url + "_MAX_TIMES_ALERT_CONTINIOUS", {}).then((result) => {
+                                            if (result) {
+                                                var maxTimeAlertOfURL = result.maxTimeAlert;
+                                                if (timesAlert < maxTimeAlertOfURL) {
+                                                    bot.sendMessage(chatId, this.stringAlert(data, averageData, true));
+                                                    timesAlert += 1;
+                                                    updateDataFromCollection(this.url + "_week", {}, {timesAlert: timesAlert});
+                                                }
+                                            } else {
+                                                if (timesAlert < maxTimeAlert) {
+                                                    bot.sendMessage(chatId, this.stringAlert(data, averageData, true));
+                                                    timesAlert += 1;
+                                                    updateDataFromCollection(this.url + "_week", {}, {timesAlert: timesAlert});
+                                                    insertDataToCollection(url + "_MAX_TIMES_ALERT_CONTINIOUS", {maxTimeAlert: maxTimeAlert}).then(doNothing, doNothing);
+                                                }
+                                            }
+                                        }, doNothing);
+
                                     }
                                 }, (err) => {
                                     console.log("get TIME ALERT WEEK FAIL!");
@@ -545,9 +559,7 @@ class Ccu {
                     }
 
                     updateDataFromCollection(url, {index: index, date: date}, {index: index, data: data, date: date});
-                }, (msgErr3) => {
-
-                });
+                }, doNothing);
 
             } else {
                 console.log("Data today in null");
@@ -569,11 +581,23 @@ class Ccu {
                             findDataReturnObjectFromCollection(url + "_yesterday", {}).then((rs) => {
                                 if (rs) {
                                     var timesAlert = rs.timesAlert;
-                                    if (timesAlert < maxTimeAlert) {
-                                        bot.sendMessage(chatId, this.stringAlert(data, dataYesterday, false));
-                                        timesAlert += 1;
-                                        updateDataFromCollection(url + "_yesterday", {}, {timesAlert: timesAlert});
-                                    }
+                                    findDataReturnObjectFromCollection(url + "_MAX_TIMES_ALERT_CONTINIOUS", {}).then((result) => {
+                                        if (result) {
+                                            var maxTimeAlertOfURL = result.maxTimeAlert;
+                                            if (timesAlert < maxTimeAlertOfURL) {
+                                                bot.sendMessage(chatId, this.stringAlert(data, dataYesterday, false));
+                                                timesAlert += 1;
+                                                updateDataFromCollection(this.url + "_yesterday", {}, {timesAlert: timesAlert});
+                                            }
+                                        } else {
+                                            if (timesAlert < maxTimeAlert) {
+                                                bot.sendMessage(chatId, this.stringAlert(data, dataYesterday, false));
+                                                timesAlert += 1;
+                                                updateDataFromCollection(this.url + "_yesterday", {}, {timesAlert: timesAlert});
+                                                insertDataToCollection(url + "_MAX_TIMES_ALERT_CONTINIOUS", {maxTimeAlert: maxTimeAlert}).then(doNothing, doNothing);
+                                            }
+                                        }
+                                    }, doNothing);
                                 }
                             }, (err) => {
                                 console.log("get TIME ALERT YESTERDAY FAIL!");
@@ -714,7 +738,6 @@ class CcuAndQueue {
         "use strict";
         var check1;
         if (data && data.ccu != undefined) {
-            console.log("COME HERE");
             check1 = this.ccu.doCheckAlert(index, data.ccu);
         }
         var check2 = this.queue.doCheckAlert(index, data);
@@ -938,6 +961,7 @@ bot.onText(/\/changePercent (.+) (.+)/, (msg, match) => {
                     switch (rs1.type) {
                         case "CCU_AND_QUEUE":
                             updateDataFromCollection(url + "_PERCENT", {}, {percent: newValue});
+                            bot.sendMessage(chatId, "THAY ĐỔI THÀNH CÔNG!");
                             break;
                         default :
                             bot.sendMessage(chatId, "URL BẠN NHẬP KHÔNG ÁP DỤNG CHO CCU!");
@@ -951,10 +975,51 @@ bot.onText(/\/changePercent (.+) (.+)/, (msg, match) => {
         } else {
             bot.sendMessage(chatId, "URL NÀY KHÔNG CÓ TRONG CHANEL CỦA BẠN");
         }
-    }, (errMessage) => {
-        "use strict";
+    }, doNothing);
+});
 
-    });
+bot.onText(/\/changeContinious (.+) (.+)/, (msg, match) => {
+    const chatId = msg.chat.id;
+    var newValue = match[2];
+
+    console.log(newValue);
+    try {
+        newValue = parseInt(newValue);
+    } catch (e) {
+        bot.sendMessage(chatId, "GỬI KHÔNG ĐÚNG ĐỊNH DẠNG");
+        return;
+    }
+
+    if (newValue < 1) {
+        bot.sendMessage(chatId, "GIÁ TRỊ SỐ LẦN THÔNG BÁO LIÊN TỤC LỚN NHẤT CẦN LÀ MỘT SỐ NGUYÊN LỚN HƠN 0");
+        return;
+    }
+    var url = match[1];
+
+    findDataReturnObjectFromCollection("listURL", {chatId: chatId, data: url}).then((rsMessage) => {
+        "use strict";
+        if (rsMessage) {
+            findDataReturnObjectFromCollection(url + "_TYPE", {}).then((rs1) => {
+                "use strict";
+                if (rs1) {
+                    switch (rs1.type) {
+                        case "CCU_AND_QUEUE":
+                            updateDataFromCollection(url + "_MAX_TIMES_ALERT_CONTINIOUS", {}, {maxTimeAlert: newValue});
+                            bot.sendMessage(chatId, "THAY ĐỔI THÀNH CÔNG!");
+                            break;
+                        default :
+                            bot.sendMessage(chatId, "URL BẠN NHẬP KHÔNG ÁP DỤNG CHO CCU!");
+                            break;
+                    }
+
+                } else {
+                    bot.sendMessage(chatId, "URL NÀY CHƯA ĐƯỢC KÍCH HOẠT");
+                }
+            }, doNothing);
+        } else {
+            bot.sendMessage(chatId, "URL NÀY KHÔNG CÓ TRONG CHANEL CỦA BẠN");
+        }
+    }, doNothing);
 });
 
 bot.onText(/\/startBOT/, (msg) => {
@@ -1108,9 +1173,7 @@ bot.on('callback_query', query => {
         } else {
             bot.sendMessage(chatId, "URL NÀY ĐÃ KÍCH HOẠT! VUI LÒNG CHỌN URL KHÁC");
         }
-    }, (msgError) => {
-
-    });
+    }, doNothing);
 
 });
 
