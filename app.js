@@ -8,35 +8,38 @@ const token = '666177464:AAG8mro3tNOX_6LbFTNRtwX35Y1QYOdDbC0';
 const bot = new TelegramBot(token, {polling: true});
 const schedule = require('node-schedule');
 const cron = require("node-cron");
+//const removeRoute = require("express-remove-route");
 
 const port = 3000;
 const app = express();
+var router = express.Router();
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
 const mongoClient = require("mongodb").MongoClient;
 const urlMongoServer = "mongodb://localhost:27017/";
-//const urlMongoServer = "mongodb://phucpham9649:tthvtcx2@ds042698.mlab.com:42698/";
 const nameDB = "mydb";
+//const urlMongoServer = "mongodb://root:tthvtcx2@ds042698.mlab.com:42698/mydb?authSource=mydb&w=1";
+//const nameDB = "";
 const defaultPeriod = 60 * 1000;
 
 const minDuration = 30;
 
-var delay = 10000;
+//var delay = 10000;
 
 const maxTimeAlert = 3;
 const defaultPercent = 0.3;
 const timesInCreaseLimit = 4;
 
 const serverPort = 9090;
+var allChanelPayment = ["IAP", "SMS_VIETEL", "SMS_MOBI"];
 
-var date = new Date().getDay();
-schedule.scheduleJob('0 0 * * *', () => {
-    "use strict";
-    date = (new Date()).getDate();
-    console.log("BEGIN NEW DATE");
-});
-
+//var date = new Date().getDay();
+//schedule.scheduleJob('0 0 * * *', () => {
+//    "use strict";
+//    date = (new Date()).getDate();
+//    console.log("BEGIN NEW DATE");
+//});
 
 function updateClient(postData, uri, chatId, callBack) {
     "use strict";
@@ -161,7 +164,7 @@ function deleteDataFromCollection(nameCollection, obj) {
     mongoClient.connect(urlMongoServer, function (err, db) {
         if (err) throw err;
         var dbo = db.db(nameDB);
-        dbo.collection(nameCollection).deleteOne(obj, function (err, obj) {
+        dbo.collection(nameCollection).deleteMany(obj, function (err, obj) {
             if (err) throw err;
             db.close();
         });
@@ -213,59 +216,59 @@ function getIpWithNormalFormat(ipClient) {
 }
 // END IP SESSION
 
-var listChatId = [];
+var listGroupChatId = [];
 
-var listChatURL = [];
+var listEndPoint = [];
 
-findDataReturnObjectFromCollection("listChatId", {}).then((result) => {
+findDataReturnObjectFromCollection("GroupChatInfo", {}).then((result) => {
     if (result) {
-        listChatId = result.data;
-        if (!listChatId) {
-            listChatId = [];
-            insertDataToCollection("listChatId", {data: listChatId});
+        listGroupChatId = result.listGroupChatId;
+        if (!listGroupChatId) {
+            listGroupChatId = [];
+            insertDataToCollection("GroupChatInfo", {listGroupChatId: listGroupChatId});
         }
         doAfterGetListId();
     } else {
-        listChatId = [];
-        insertDataToCollection("listChatId", {data: listChatId});
+        listGroupChatId = [];
+        insertDataToCollection("GroupChatInfo", {listGroupChatId: listGroupChatId});
         doAfterGetListId();
     }
 }, (errMsg) => {
-    listChatId = [];
-    insertDataToCollection("listChatId", {data: listChatId});
+    listGroupChatId = [];
+    insertDataToCollection("GroupChatInfo", {listGroupChatId: listGroupChatId});
     doAfterGetListId();
 });
 
 function doAfterGetListId() {
-    findDataReturnObjectFromCollection("crrDate", {}).then((result) => {
-        if (result) {
-            date = result.date;
-            //doIfBeginNewDay();
-        } else {
-            date = new Date().getDay();
-            insertDataToCollection("crrDate", {date: date}).then(doNothing, (err) => {
-                console.log("Can't not insert");
-            })
-        }
-    }, (errMsg) => {
-        date = new Date().getDay();
-        insertDataToCollection("crrDate", {date: date}).then(doNothing, (err) => {
-            console.log("Can't not insert");
-        });
-    });
+    //findDataReturnObjectFromCollection("crrDate", {}).then((result) => {
+    //    if (result) {
+    //        date = result.date;
+    //        //doIfBeginNewDay();
+    //    } else {
+    //        date = new Date().getDay();
+    //        insertDataToCollection("crrDate", {date: date}).then(doNothing, (err) => {
+    //            console.log("Can't not insert");
+    //        })
+    //    }
+    //}, (errMsg) => {
+    //    date = new Date().getDay();
+    //    insertDataToCollection("crrDate", {date: date}).then(doNothing, (err) => {
+    //        console.log("Can't not insert");
+    //    });
+    //});
 
-    listChatId.forEach(function (element) {
+    listGroupChatId.forEach(function (element) {
         "use strict";
-        findDataReturnArrayFromCollection("listURL", {chatId: element}).then((result) => {
+        findDataReturnArrayFromCollection("EndPointInfo", {groupId: element}).then((result) => {
             if (result) {
                 result.forEach((item) => {
-                    var url = item.data;
-                    if (url) {
-                        findDataReturnObjectFromCollection(url + "_TYPE", {}).then((result4) => {
+                    var endPoint = item.endPoint;
+                    if (endPoint) {
+                        findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((result4) => {
                             if (result4) {
                                 var type = result4.type;
-                                listChatURL.push(url);
-                                addURL(url, element, type);
+                                listEndPoint.push(endPoint);
+                                addEndPoint(endPoint, element, type);
                             }
                         }, doNothing);
                     }
@@ -277,120 +280,134 @@ function doAfterGetListId() {
     });
 }
 
-function doIfBeginNewDay() {
-    "use strict";
-    var crrDate = new Date().getDay();
-    if (crrDate != date) {
-        date = crrDate;
-        insertDataToCollection("crrDate", {date: crrDate}).then(doNothing, (err) => {
-            console.log("Can't not insert");
-        });
-    }
-}
+//function doIfBeginNewDay() {
+//    "use strict";
+//    var crrDate = new Date().getDay();
+//    if (crrDate != date) {
+//        date = crrDate;
+//        insertDataToCollection("crrDate", {date: crrDate}).then(doNothing, (err) => {
+//            console.log("Can't not insert");
+//        });
+//    }
+//}
 
-function getObjectChoose(type, url, chatId) {
+function getObjectChoose(type, endPoint, chatId) {
     "use strict";
     switch (type) {
         case "CCU_AND_QUEUE":
-            return new CcuAndQueue(url, chatId);
+            return new CcuAndQueue(endPoint, chatId);
         //case "QUEUE":
-        //    return new Queue(url, chatId);
+        //    return new Queue(endPoint, chatId);
         case "PAYMENT":
-            return new Payment(url, chatId);
+            return new Payment(endPoint, chatId);
+        default:
+            return null;
     }
 }
 
-function addURL(url, chatId, type) {
+function addEndPoint(endPoint, chatId, type) {
     "use strict";
 
-    var objectChoose = getObjectChoose(type, url, chatId);
-    objectChoose.initData(url);
+    var objectChoose = getObjectChoose(type, endPoint, chatId);
+    if(!objectChoose) {
+        console.log("Have no in type");
+        return;
+    } else {
+        objectChoose.initData(endPoint);
 
-    app.post('/' + url, (req, res) => {
-        "use strict";
+        console.log("Add new endPoint : " + endPoint + "|" + type);
 
-        var ip = req.ip || req.connection.remoteAddress || req.socket.remoteAddress || req.connection.sokect.remoteAddress;
+        app.post('/' + endPoint, (req, res) => {
+            "use strict";
 
-        var ipFormat = getIpWithNormalFormat(ip);
+            var ip = req.ip || req.connection.remoteAddress || req.socket.remoteAddress || req.connection.sokect.remoteAddress;
 
-        var hashString = req.body.hashString;
+            var ipFormat = getIpWithNormalFormat(ip);
 
-        //if(!hashString || !ipFormat) {
-        //    res.send(false);
-        //    return;
-        //}
+            var passcode = req.body.passcode;
 
-        if (!hashString) {
-            res.send(false);
-            return;
-        }
+            //if(!hashString || !ipFormat) {
+            //    res.send(false);
+            //    return;
+            //}
 
-        //doIfBeginNewDay();
-        var data = req.body.data;
-        var index = req.body.index;
-
-        findDataReturnObjectFromCollection(chatId + "_IP", {}).then((rsMsg) => {
-            if (!rsMsg) {
-                insertDataToCollection(chatId + "_IP", {ip: ipFormat}).then(doNothing, doNothing);
+            if (!passcode) {
+                res.send(false);
+                return;
             }
-        }, doNothing);
 
-        findDataReturnObjectFromCollection(chatId + "_HASHSTRING", {}).then((rs) => {
-            if (rs) {
-                if (rs.hashString != hashString) {
-                    res.send(false);
+            //doIfBeginNewDay();
+            var data = req.body.data;
+            var index = req.body.index;
+
+            findDataReturnObjectFromCollection(chatId + "_Ip", {}).then((rsMsg) => {
+                if (!rsMsg) {
+                    insertDataToCollection(chatId + "_Ip", {ip: ipFormat}).then(doNothing, doNothing);
+                }
+            }, doNothing);
+
+            findDataReturnObjectFromCollection(chatId + "_Passcode", {}).then((rs) => {
+                if (rs) {
+                    if (rs.passcode != passcode) {
+                        res.send(false);
+                    } else {
+                        res.send(objectChoose.doCheckAlert(index, data));
+                    }
                 } else {
+                    insertDataToCollection(chatId + "_Passcode", {passcode: passcode}).then(doNothing, doNothing);
                     res.send(objectChoose.doCheckAlert(index, data));
                 }
-            } else {
-                insertDataToCollection(chatId + "_HASHSTRING", {hashString: hashString}).then(doNothing, doNothing);
+            }, (err) => {
+                insertDataToCollection(chatId + "_Passcode", {passcode: passcode}).then(doNothing, doNothing);
                 res.send(objectChoose.doCheckAlert(index, data));
-            }
-        }, (err) => {
-            insertDataToCollection(chatId + "_HASHSTRING", {hashString: hashString}).then(doNothing, doNothing);
-            res.send(objectChoose.doCheckAlert(index, data));
-        });
+            });
 
-    });
+        });
+    }
+
+
+
+
+    //app.use("/" + endPoint, router);
 }
 
 class Ccu {
-    constructor(url, chatId) {
+    constructor(endPoint, chatId) {
         "use strict";
-        this.url = url;
+        this.endPoint = endPoint;
         this.chatId = chatId;
     }
 
-    initData(url) {
+    initData(endPoint) {
         "use strict";
 
-        findDataReturnObjectFromCollection(url + "_week", {}).then((result) => {
+        findDataReturnObjectFromCollection(endPoint + "_TimeAlertContinuousWeek", {}).then((result) => {
             if (!result) {
-                insertDataToCollection(url + "_week", {timesAlert: 0}).then(doNothing, doNothing);
+                insertDataToCollection(endPoint + "_TimeAlertContinuousWeek", {timesAlert: 0}).then(doNothing, doNothing);
             }
         }, doNothing);
 
-        findDataReturnObjectFromCollection(url + "_yesterday", {}).then((result) => {
+        findDataReturnObjectFromCollection(endPoint + "_TimeAlertContinuousYesterday", {}).then((result) => {
             if (!result) {
-                insertDataToCollection(url + "_yesterday", {timesAlert: 0}).then(doNothing, doNothing);
+                insertDataToCollection(endPoint + "_TimeAlertContinuousYesterday", {timesAlert: 0}).then(doNothing, doNothing);
             }
         }, doNothing);
 
-        //findDataReturnObjectFromCollection(url + "_TYPE", {}).then((result) => {
+        //findDataReturnObjectFromCollection(endPoint + "_TYPE", {}).then((result) => {
         //    if(!result) {
-        //        insertDataToCollection(url + "_TYPE", {type : "CCU"}).then((m) => {}, (e) => {});
+        //        insertDataToCollection(endPoint + "_TYPE", {type : "CCU"}).then((m) => {}, (e) => {});
         //    }
         //}, (errorMsg) => {});
 
-        findDataReturnObjectFromCollection(url + "_PERCENT", {}).then((result) => {
+        findDataReturnObjectFromCollection(endPoint + "_Percent", {}).then((result) => {
             if (!result) {
-                insertDataToCollection(url + "_PERCENT", {percent: defaultPercent}).then(doNothing, doNothing);
+                insertDataToCollection(endPoint + "_Percent", {percent: defaultPercent}).then(doNothing, doNothing);
             }
         }, doNothing);
 
-        findDataReturnObjectFromCollection(url + "_MAX_TIMES_ALERT_CONTINIOUS", {}).then((result) => {
+        findDataReturnObjectFromCollection(endPoint + "_MaxTimesAlertContinuous", {}).then((result) => {
             if (!result) {
-                insertDataToCollection(url + "_MAX_TIMES_ALERT_CONTINIOUS", {maxTimeAlert: maxTimeAlert}).then(doNothing, doNothing);
+                insertDataToCollection(endPoint + "_MaxTimesAlertContinuous", {maxTimeAlert: maxTimeAlert}).then(doNothing, doNothing);
             }
         }, doNothing);
 
@@ -399,69 +416,69 @@ class Ccu {
 
     fakeDataCCU() {
         "use strict";
-        var dataYesterday = [{index: 1620, date: 0, data: 1500}, {index: 1621, date: 0, data: 1}, {
-            index: 1622,
-            date: 0,
+        var dataYesterday = [{index: 1710, dayOfWeek: 0, data: 1500}, {index: 1711, dayOfWeek: 0, data: 1}, {
+            index: 1712,
+            dayOfWeek: 0,
             data: 2
-        }, {index: 1623, date: 0, data: 1500}, {index: 1624, date: 0, data: 1500}, {
-            index: 1625,
-            date: 0,
+        }, {index: 1713, dayOfWeek: 0, data: 1500}, {index: 1714, dayOfWeek: 0, data: 1500}, {
+            index: 1715,
+            dayOfWeek: 0,
             data: 1500
-        }, {index: 1626, date: 0, data: 1500}, {index: 1627, date: 0, data: 1}, {index: 1628, date: 0, data: 1500}];
-        var dataYesterday1 = [{index: 1620, date: 1, data: 1500}, {index: 1621, date: 1, data: 1}, {
-            index: 1622,
-            date: 1,
+        }, {index: 1716, dayOfWeek: 0, data: 1500}, {index: 1717, dayOfWeek: 0, data: 1}, {index: 1718, dayOfWeek: 0, data: 1500}];
+        var dataYesterday1 = [{index: 1710, dayOfWeek: 1, data: 1500}, {index: 1711, dayOfWeek: 1, data: 1}, {
+            index: 1712,
+            dayOfWeek: 1,
             data: 2
-        }, {index: 1623, date: 1, data: 1500}, {index: 1624, date: 1, data: 1500}, {
-            index: 1625,
-            date: 1,
+        }, {index: 1713, dayOfWeek: 1, data: 1500}, {index: 1714, dayOfWeek: 1, data: 1500}, {
+            index: 1715,
+            dayOfWeek: 1,
             data: 1500
-        }, {index: 1626, date: 1, data: 1500}, {index: 1627, date: 1, data: 1}, {index: 1628, date: 1, data: 1500}];
-        var dataYesterday2 = [{index: 1620, date: 2, data: 1500}, {index: 1621, date: 2, data: 1}, {
-            index: 1622,
-            date: 2,
+        }, {index: 1716, dayOfWeek: 1, data: 1500}, {index: 1717, dayOfWeek: 1, data: 1}, {index: 1718, dayOfWeek: 1, data: 1500}];
+        var dataYesterday2 = [{index: 1710, dayOfWeek: 2, data: 1500}, {index: 1711, dayOfWeek: 2, data: 1}, {
+            index: 1712,
+            dayOfWeek: 2,
             data: 2
-        }, {index: 1623, date: 2, data: 1500}, {index: 1624, date: 2, data: 1500}, {
-            index: 1625,
-            date: 2,
+        }, {index: 1713, dayOfWeek: 2, data: 1500}, {index: 1714, dayOfWeek: 2, data: 1500}, {
+            index: 1715,
+            dayOfWeek: 2,
             data: 1500
-        }, {index: 1626, date: 2, data: 1500}, {index: 1627, date: 2, data: 1}, {index: 1628, date: 2, data: 1500}];
-        var dataYesterday3 = [{index: 1620, date: 3, data: 1500}, {index: 1621, date: 3, data: 1}, {
-            index: 1622,
-            date: 3,
+        }, {index: 1716, dayOfWeek: 2, data: 1500}, {index: 1717, dayOfWeek: 2, data: 1}, {index: 1718, dayOfWeek: 2, data: 1500}];
+        var dataYesterday3 = [{index: 1710, dayOfWeek: 3, data: 1500}, {index: 1711, dayOfWeek: 3, data: 1}, {
+            index: 1712,
+            dayOfWeek: 3,
             data: 2
-        }, {index: 1623, date: 3, data: 1500}, {index: 1624, date: 3, data: 1500}, {
-            index: 1625,
-            date: 3,
+        }, {index: 1713, dayOfWeek: 3, data: 1500}, {index: 1714, dayOfWeek: 3, data: 1500}, {
+            index: 1715,
+            dayOfWeek: 3,
             data: 1500
-        }, {index: 1626, date: 3, data: 1500}, {index: 1627, date: 3, data: 1}, {index: 1628, date: 3, data: 1500}];
-        var dataYesterday4 = [{index: 1620, date: 4, data: 1500}, {index: 1621, date: 4, data: 1}, {
-            index: 1622,
-            date: 4,
+        }, {index: 1716, dayOfWeek: 3, data: 1500}, {index: 1717, dayOfWeek: 3, data: 1}, {index: 1718, dayOfWeek: 3, data: 1500}];
+        var dataYesterday4 = [{index: 1710, dayOfWeek: 4, data: 1500}, {index: 1711, dayOfWeek: 4, data: 1}, {
+            index: 1712,
+            dayOfWeek: 4,
             data: 2
-        }, {index: 1623, date: 4, data: 1500}, {index: 1624, date: 4, data: 1500}, {
-            index: 1625,
-            date: 4,
+        }, {index: 1713, dayOfWeek: 4, data: 1500}, {index: 1714, dayOfWeek: 4, data: 1500}, {
+            index: 1715,
+            dayOfWeek: 4,
             data: 1500
-        }, {index: 1626, date: 4, data: 1500}, {index: 1627, date: 4, data: 1}, {index: 1628, date: 4, data: 1500}];
-        var dataYesterday5 = [{index: 1620, date: 5, data: 1500}, {index: 1621, date: 5, data: 1}, {
-            index: 1622,
-            date: 5,
+        }, {index: 1716, dayOfWeek: 4, data: 1500}, {index: 1717, dayOfWeek: 4, data: 1}, {index: 1718, dayOfWeek: 4, data: 1500}];
+        var dataYesterday5 = [{index: 1710, dayOfWeek: 5, data: 1500}, {index: 1711, dayOfWeek: 5, data: 1}, {
+            index: 1712,
+            dayOfWeek: 5,
             data: 2
-        }, {index: 1623, date: 5, data: 1500}, {index: 1624, date: 5, data: 1500}, {
-            index: 1625,
-            date: 5,
+        }, {index: 1713, dayOfWeek: 5, data: 1500}, {index: 1714, dayOfWeek: 5, data: 1500}, {
+            index: 1715,
+            dayOfWeek: 5,
             data: 1500
-        }, {index: 1626, date: 5, data: 1500}, {index: 1627, date: 5, data: 1}, {index: 1628, date: 5, data: 1500}];
-        var dataYesterday6 = [{index: 1620, date: 6, data: 1500}, {index: 1621, date: 6, data: 1}, {
-            index: 1622,
-            date: 6,
+        }, {index: 1716, dayOfWeek: 5, data: 1500}, {index: 1717, dayOfWeek: 5, data: 1}, {index: 1718, dayOfWeek: 5, data: 1500}];
+        var dataYesterday6 = [{index: 1710, dayOfWeek: 6, data: 1500}, {index: 1711, dayOfWeek: 6, data: 1}, {
+            index: 1712,
+            dayOfWeek: 6,
             data: 2
-        }, {index: 1623, date: 6, data: 1500}, {index: 1624, date: 6, data: 1500}, {
-            index: 1625,
-            date: 6,
+        }, {index: 1713, dayOfWeek: 6, data: 1500}, {index: 1714, dayOfWeek: 6, data: 1500}, {
+            index: 1715,
+            dayOfWeek: 6,
             data: 1500
-        }, {index: 1626, date: 6, data: 1500}, {index: 1627, date: 6, data: 1}, {index: 1628, date: 6, data: 1500}];
+        }, {index: 1716, dayOfWeek: 6, data: 1500}, {index: 1717, dayOfWeek: 6, data: 1}, {index: 1718, dayOfWeek: 6, data: 1500}];
         var listData = [];
         listData.push(dataYesterday);
         listData.push(dataYesterday1);
@@ -472,7 +489,7 @@ class Ccu {
         listData.push(dataYesterday6);
 
         for (var i = 0; i <= 6; i++) {
-            insertDataToCollection(this.url, listData[i]).then(doNothing, doNothing);
+            insertDataToCollection(this.endPoint, listData[i]).then(doNothing, doNothing);
         }
     }
 
@@ -483,20 +500,22 @@ class Ccu {
 
     doCheckAlert(index, data) {
         "use strict";
+        var dayOfWeek;
         try {
             data = parseInt(data);
             index = parseInt(index);
             var crrDate = new Date(index);
 
             index = parseInt((crrDate.getHours() * 3600 + crrDate.getMinutes() * 60 + crrDate.getSeconds()) / minDuration);
-            console.log("parint index: " + index);
+            dayOfWeek = crrDate.getDay();
+            console.log("day Of week: " + dayOfWeek);
         } catch (err1) {
             return false;
         }
 
         console.log("CHECK WITH CCU");
 
-        this.checkNeedAlert(index, data, this.chatId, this.url);
+        this.checkNeedAlert(index, data, this.chatId, this.endPoint, dayOfWeek);
         return true;
     }
 
@@ -509,11 +528,23 @@ class Ccu {
         return "CCU HIỆN TẠI THẤP HƠN TRUNG BÌNH 7 NGÀY QUA : " + (oldValue - crrValue);
     }
 
-    checkNeedAlert(index, data, chatId, url) {
+    removeData() {
         "use strict";
-        findDataReturnObjectFromCollection(url, {index: index, date: date}).then((rs) => {
+        deleteDataFromCollection(this.endPoint, {});
+        console.log("Remove Data Collection");
+        //dropCollection(this.endPoint);
+        //dropCollection(this.endPoint + "_Percent");
+        //dropCollection(this.endPoint + "_MaxTimesAlertContinuous");
+        //dropCollection(this.endPoint + "_TimeAlertContinuousWeek");
+        //dropCollection(this.endPoint + "_TimeAlertContinuousYesterday");
+        //dropCollection(this.endPoint + "_Type");
+    }
+
+    checkNeedAlert(index, data, chatId, endPoint, dayOfWeek) {
+        "use strict";
+        findDataReturnObjectFromCollection(endPoint, {index: index, dayOfWeek: dayOfWeek}).then((rs) => {
             if (rs) {
-                findDataReturnArrayFromCollection(url, {index: index}).then((resutl3) => {
+                findDataReturnArrayFromCollection(endPoint, {index: index}).then((resutl3) => {
                     var num = resutl3.length;
                     var sum = 0;
                     resutl3.forEach((item) => {
@@ -522,27 +553,27 @@ class Ccu {
 
                     if (num > 0) {
                         var averageData = parseInt(sum / num);
-                        findDataReturnObjectFromCollection(url + "_PERCENT", {}).then((rsMsg) => {
+                        findDataReturnObjectFromCollection(endPoint + "_Percent", {}).then((rsMsg) => {
                             var percent = rsMsg.percent;
                             console.log("PERCENT : " + percent);
                             if (this.checkConditionAlert(data, averageData, percent)) {
-                                findDataReturnObjectFromCollection(url + "_week", {}).then((rs) => {
+                                findDataReturnObjectFromCollection(endPoint + "_TimeAlertContinuousWeek", {}).then((rs) => {
                                     if (rs) {
                                         var timesAlert = rs.timesAlert;
-                                        findDataReturnObjectFromCollection(url + "_MAX_TIMES_ALERT_CONTINIOUS", {}).then((result) => {
+                                        findDataReturnObjectFromCollection(endPoint + "_MaxTimesAlertContinuous", {}).then((result) => {
                                             if (result) {
                                                 var maxTimeAlertOfURL = result.maxTimeAlert;
                                                 if (timesAlert < maxTimeAlertOfURL) {
                                                     bot.sendMessage(chatId, this.stringAlert(data, averageData, true));
                                                     timesAlert += 1;
-                                                    updateDataFromCollection(this.url + "_week", {}, {timesAlert: timesAlert});
+                                                    updateDataFromCollection(this.endPoint + "_TimeAlertContinuousWeek", {}, {timesAlert: timesAlert});
                                                 }
                                             } else {
                                                 if (timesAlert < maxTimeAlert) {
                                                     bot.sendMessage(chatId, this.stringAlert(data, averageData, true));
                                                     timesAlert += 1;
-                                                    updateDataFromCollection(this.url + "_week", {}, {timesAlert: timesAlert});
-                                                    insertDataToCollection(url + "_MAX_TIMES_ALERT_CONTINIOUS", {maxTimeAlert: maxTimeAlert}).then(doNothing, doNothing);
+                                                    updateDataFromCollection(this.endPoint + "_TimeAlertContinuousWeek", {}, {timesAlert: timesAlert});
+                                                    insertDataToCollection(endPoint + "_MaxTimesAlertContinuous", {maxTimeAlert: maxTimeAlert}).then(doNothing, doNothing);
                                                 }
                                             }
                                         }, doNothing);
@@ -553,48 +584,48 @@ class Ccu {
                                 });
 
                             } else {
-                                updateDataFromCollection(url + "_week", {}, {timesAlert: 0});
+                                updateDataFromCollection(endPoint + "_TimeAlertContinuousWeek", {}, {timesAlert: 0});
                             }
                         }, doNothing);
                     }
 
-                    updateDataFromCollection(url, {index: index, date: date}, {index: index, data: data, date: date});
+                    updateDataFromCollection(endPoint, {index: index, dayOfWeek: dayOfWeek}, {index: index, data: data, dayOfWeek: dayOfWeek});
                 }, doNothing);
 
             } else {
                 console.log("Data today in null");
-                insertDataToCollection(url, {index: index, data: data, date: date}).then(doNothing, doNothing);
+                insertDataToCollection(endPoint, {index: index, data: data, dayOfWeek: dayOfWeek}).then(doNothing, doNothing);
             }
         }, (errMsg) => {
             console.log("error in get data today");
         });
 
-        var yesterday = getDayBefore(date);
-        findDataReturnObjectFromCollection(url, {index: index, date: yesterday}).then((result2) => {
+        var yesterday = getDayBefore(dayOfWeek);
+        findDataReturnObjectFromCollection(endPoint, {index: index, dayOfWeek: yesterday}).then((result2) => {
             if (result2) {
                 var dataYesterday = result2.data;
                 console.log("ccu yesterday :" + JSON.stringify(dataYesterday));
                 if (dataYesterday) {
-                    findDataReturnObjectFromCollection(url + "_PERCENT", {}).then((rsMsg) => {
+                    findDataReturnObjectFromCollection(endPoint + "_Percent", {}).then((rsMsg) => {
                         var percent = rsMsg.percent;
                         if (this.checkConditionAlert(data, dataYesterday, percent)) {
-                            findDataReturnObjectFromCollection(url + "_yesterday", {}).then((rs) => {
+                            findDataReturnObjectFromCollection(endPoint + "_TimeAlertContinuousYesterday", {}).then((rs) => {
                                 if (rs) {
                                     var timesAlert = rs.timesAlert;
-                                    findDataReturnObjectFromCollection(url + "_MAX_TIMES_ALERT_CONTINIOUS", {}).then((result) => {
+                                    findDataReturnObjectFromCollection(endPoint + "_MaxTimesAlertContinuous", {}).then((result) => {
                                         if (result) {
                                             var maxTimeAlertOfURL = result.maxTimeAlert;
                                             if (timesAlert < maxTimeAlertOfURL) {
                                                 bot.sendMessage(chatId, this.stringAlert(data, dataYesterday, false));
                                                 timesAlert += 1;
-                                                updateDataFromCollection(this.url + "_yesterday", {}, {timesAlert: timesAlert});
+                                                updateDataFromCollection(this.endPoint + "_TimeAlertContinuousYesterday", {}, {timesAlert: timesAlert});
                                             }
                                         } else {
                                             if (timesAlert < maxTimeAlert) {
                                                 bot.sendMessage(chatId, this.stringAlert(data, dataYesterday, false));
                                                 timesAlert += 1;
-                                                updateDataFromCollection(this.url + "_yesterday", {}, {timesAlert: timesAlert});
-                                                insertDataToCollection(url + "_MAX_TIMES_ALERT_CONTINIOUS", {maxTimeAlert: maxTimeAlert}).then(doNothing, doNothing);
+                                                updateDataFromCollection(this.endPoint + "_TimeAlertContinuousYesterday", {}, {timesAlert: timesAlert});
+                                                insertDataToCollection(endPoint + "_MaxTimesAlertContinuous", {maxTimeAlert: maxTimeAlert}).then(doNothing, doNothing);
                                             }
                                         }
                                     }, doNothing);
@@ -604,7 +635,7 @@ class Ccu {
                             });
 
                         } else {
-                            updateDataFromCollection(url + "_yesterday", {}, {timesAlert: 0});
+                            updateDataFromCollection(endPoint + "_TimeAlertContinuousYesterday", {}, {timesAlert: 0});
                         }
                     }, doNothing);
                 }
@@ -618,9 +649,9 @@ class Ccu {
 }
 
 class Queue {
-    constructor(url, chatId) {
+    constructor(endPoint, chatId) {
         "use strict";
-        this.url = url;
+        this.endPoint = endPoint;
         this.chatId = chatId;
     }
 
@@ -629,26 +660,35 @@ class Queue {
         return (crrValue > oldValue);
     }
 
-    initData(url) {
+    //removeData() {
+    //    "use strict";
+    //    dropCollection(this.endPoint);
+    //    dropCollection(this.endPoint + "_ExtensionQueue");
+    //    dropCollection(this.endPoint + "_OutGoingQueue");
+    //    dropCollection(this.endPoint + "_ExtensionQueue");
+    //    dropCollection(this.endPoint + "_Type");
+    //}
+
+    initData(endPoint) {
         "use strict";
-        findDataReturnObjectFromCollection(url, {type: "SystemQueue"}).then((rs) => {
+        findDataReturnObjectFromCollection(endPoint, {type: "SystemQueue"}).then((rs) => {
             if (!rs) {
-                insertDataToCollection(url, {type: "SystemQueue", timesIncrease: 0}).then(doNothing, doNothing);
+                insertDataToCollection(endPoint, {type: "SystemQueue", timesIncrease: 0}).then(doNothing, doNothing);
             }
         }, doNothing);
-        findDataReturnObjectFromCollection(url, {type: "OutGoingQueue"}).then((rs) => {
+        findDataReturnObjectFromCollection(endPoint, {type: "OutGoingQueue"}).then((rs) => {
             if (!rs) {
-                insertDataToCollection(url, {type: "OutGoingQueue", timesIncrease: 0}).then(doNothing, doNothing);
+                insertDataToCollection(endPoint, {type: "OutGoingQueue", timesIncrease: 0}).then(doNothing, doNothing);
             }
         }, doNothing);
-        findDataReturnObjectFromCollection(url, {type: "ExtensionQueue"}).then((rs) => {
+        findDataReturnObjectFromCollection(endPoint, {type: "ExtensionQueue"}).then((rs) => {
             if (!rs) {
-                insertDataToCollection(url, {type: "ExtensionQueue", timesIncrease: 0}).then(doNothing, doNothing);
+                insertDataToCollection(endPoint, {type: "ExtensionQueue", timesIncrease: 0}).then(doNothing, doNothing);
             }
         }, doNothing);
-        //findDataReturnObjectFromCollection(url + "_TYPE", {}).then((rs) => {
+        //findDataReturnObjectFromCollection(endPoint + "_TYPE", {}).then((rs) => {
         //    if(!rs) {
-        //        insertDataToCollection(url + "_TYPE", {type : "QUEUE"}).then((m) => {}, (e) => {});
+        //        insertDataToCollection(endPoint + "_TYPE", {type : "QUEUE"}).then((m) => {}, (e) => {});
         //    }
         //}, (e) => {});
 
@@ -667,7 +707,7 @@ class Queue {
         }
 
         console.log("CHECK WITH QUEUE");
-        this.checkNeedAlert(systemQueue, outGoingQueue, extensionQueue, this.chatId, this.url);
+        this.checkNeedAlert(systemQueue, outGoingQueue, extensionQueue, this.chatId, this.endPoint);
 
         return true;
     }
@@ -677,127 +717,253 @@ class Queue {
         return type + " ĐANG TĂNG LÊN LIÊN TỤC!";
     }
 
-    checkNeedAlertWithType(chatId, type, url, crrValue) {
+    checkNeedAlertWithType(chatId, type, endPoint, crrValue) {
         "use strict";
-        findDataReturnObjectFromCollection(url + "_" + type, {}).then((rs) => {
+        findDataReturnObjectFromCollection(endPoint + "_" + type, {}).then((rs) => {
             if (rs) {
                 var oldValue = rs.data;
 
                 if (this.checkConditionAlert(crrValue, oldValue)) {
-                    findDataReturnObjectFromCollection(url, {type: type}).then((result) => {
+                    findDataReturnObjectFromCollection(endPoint, {type: type}).then((result) => {
                         if (result) {
                             var timesIncrease = result.timesIncrease;
                             if (timesIncrease >= timesInCreaseLimit) {
                                 bot.sendMessage(chatId, this.stringAlert(type));
                             }
-                            updateDataFromCollection(url, {type: type}, {type: type, timesIncrease: timesIncrease + 1});
+                            updateDataFromCollection(endPoint, {type: type}, {type: type, timesIncrease: timesIncrease + 1});
                         } else {
-                            insertDataToCollection(url, {type: type, timesIncrease: 1}).then(doNothing, doNothing);
+                            insertDataToCollection(endPoint, {type: type, timesIncrease: 1}).then(doNothing, doNothing);
                         }
                     }, doNothing);
                 } else {
-                    updateDataFromCollection(url, {type: type}, {type: type, timesIncrease: 1});
+                    updateDataFromCollection(endPoint, {type: type}, {type: type, timesIncrease: 1});
                 }
-                updateDataFromCollection(url + "_" + type, {}, {data: crrValue});
+                updateDataFromCollection(endPoint + "_" + type, {}, {data: crrValue});
             } else {
-                insertDataToCollection(url + "_" + type, {data: crrValue}).then(doNothing, doNothing);
+                insertDataToCollection(endPoint + "_" + type, {data: crrValue}).then(doNothing, doNothing);
             }
         }, (err) => {
-            insertDataToCollection(url + "_" + type, {data: crrValue}).then(doNothing, doNothing);
+            insertDataToCollection(endPoint + "_" + type, {data: crrValue}).then(doNothing, doNothing);
         });
     }
 
-    checkNeedAlert(systemQueue, outGoingQueue, extensionQueue, chatId, url) {
+    checkNeedAlert(systemQueue, outGoingQueue, extensionQueue, chatId, endPoint) {
         "use strict";
-        this.checkNeedAlertWithType(chatId, "SystemQueue", url, systemQueue);
-        this.checkNeedAlertWithType(chatId, "OutGoingQueue", url, outGoingQueue);
-        this.checkNeedAlertWithType(chatId, "ExtensionQueue", url, extensionQueue);
+        this.checkNeedAlertWithType(chatId, "SystemQueue", endPoint, systemQueue);
+        this.checkNeedAlertWithType(chatId, "OutGoingQueue", endPoint, outGoingQueue);
+        this.checkNeedAlertWithType(chatId, "ExtensionQueue", endPoint, extensionQueue);
         return true;
     }
 }
 
 class CcuAndQueue {
-    constructor(url, chatId) {
+    constructor(endPoint, chatId) {
         "use strict";
-        this.ccu = new Ccu(url, chatId);
-        this.queue = new Queue(url, chatId);
+        this.ccu = new Ccu(endPoint, chatId);
+        this.queue = new Queue(endPoint, chatId);
     }
 
-    initData(url) {
+    initData(endPoint) {
         "use strict";
-        this.ccu.initData(url);
-        this.queue.initData(url);
-        findDataReturnObjectFromCollection(url + "_TYPE", {}).then((result) => {
+        this.ccu.initData(endPoint);
+        this.queue.initData(endPoint);
+        findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((result) => {
             if (!result) {
-                insertDataToCollection(url + "_TYPE", {type: "CCU_AND_QUEUE"}).then(doNothing, doNothing);
+                insertDataToCollection(endPoint + "_Type", {type: "CCU_AND_QUEUE"}).then(doNothing, doNothing);
+            }
+        }, doNothing);
+
+        findDataReturnObjectFromCollection(endPoint + "_Status", {}).then((result) => {
+            if (!result) {
+                insertDataToCollection(endPoint + "_Status", {isActive: true}).then(doNothing, doNothing);
+            }
+        }, doNothing);
+    }
+
+    removeData() {
+        "use strict";
+        this.ccu.removeData();
+        //this.queue.removeData();
+    }
+
+    doCheckAlertWithEndPoint(index, data, endPoint) {
+        "use strict";
+        findDataReturnObjectFromCollection(endPoint + "_Status", {}).then((result) => {
+            if(!result || !result.isActive) {
+                console.log(endPoint+ " ĐANG TRONG TRẠNG THÁI UNACTIVE");
+            } else {
+                var check1;
+                if (data && data.ccu != undefined) {
+                    check1 = this.ccu.doCheckAlert(index, data.ccu);
+                }
+                var check2 = this.queue.doCheckAlert(index, data);
+                return (check1 && check2);
             }
         }, doNothing);
     }
 
     doCheckAlert(index, data) {
         "use strict";
-        var check1;
-        if (data && data.ccu != undefined) {
-            check1 = this.ccu.doCheckAlert(index, data.ccu);
-        }
-        var check2 = this.queue.doCheckAlert(index, data);
-        return (check1 && check2);
+        var endPoint = this.ccu.endPoint;
+        this.doCheckAlertWithEndPoint(index, data, endPoint);
     }
 }
 
+//class Payment {
+//    constructor(endPoint, chatId) {
+//        "use strict";
+//        this.endPoint = endPoint;
+//        this.chatId = chatId;
+//    }
+//
+//    initData(endPoint) {
+//        "use strict";
+//
+//        var seft = this;
+//        var functionTimeOut = function () {
+//
+//            findDataReturnObjectFromCollection(endPoint, {}).then((rs) => {
+//                if (rs) {
+//                    var numPayment = rs.numPayment;
+//                    if (numPayment <= 0) {
+//                        bot.sendMessage(seft.chatId, "ĐÃ QUÁ LÂU MÀ CHƯA THẤY CÓ PAYMENT! HUHU");
+//                    }
+//
+//                    updateDataFromCollection(endPoint {}, {numPayment: 0});
+//                    findDataReturnObjectFromCollection(endPoint + "_Period", {}).then((result) => {
+//                        var timeOut = result.period;
+//                        setTimeout(functionTimeOut, timeOut);
+//                    }, doNothing);
+//                }
+//            }, doNothing);
+//        };
+//
+//        findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rs) => {
+//            if (!rs) {
+//                insertDataToCollection(endPoint + "_Type", {type: "PAYMENT"}).then(doNothing, doNothing);
+//            }
+//        }, doNothing);
+//
+//
+//        findDataReturnObjectFromCollection(endPoint, {}).then((rsMsg) => {
+//            if (rsMsg) {
+//                findDataReturnObjectFromCollection(endPoint + "_Period", {}).then((result) => {
+//                    if (result) {
+//                        var timeOut = result.period;
+//                        setTimeout(functionTimeOut, timeOut);
+//                    } else {
+//                        insertDataToCollection(endPoint + "_Period", {period: defaultPeriod}).then((ok1) => {
+//                            setTimeout(functionTimeOut, defaultPeriod);
+//                        }, doNothing);
+//                    }
+//                }, doNothing);
+//            } else {
+//                insertDataToCollection(endPoint, {numPayment: 0}).then((ok) => {
+//                    insertDataToCollection(endPoint + "_Period", {period: defaultPeriod}).then((ok1) => {
+//                        setTimeout(functionTimeOut, defaultPeriod);
+//                    }, doNothing);
+//                }, doNothing);
+//            }
+//        }, doNothing);
+//
+//    }
+//
+//    doCheckAlert(index, data) {
+//        "use strict";
+//        console.log("add Payment");
+//        findDataReturnObjectFromCollection(this.endPoint, {}).then((rs) => {
+//            if (rs) {
+//                var numPayment = rs.numPayment;
+//                updateDataFromCollection(this.endPoint, {}, {numPayment: numPayment + 1});
+//            } else {
+//                return false;
+//            }
+//        }, doNothing);
+//        return true;
+//    }
+//
+//}
 class Payment {
-    constructor(url, chatId) {
+    constructor(endPoint, chatId) {
         "use strict";
-        this.url = url;
+        this.endPoint = endPoint;
         this.chatId = chatId;
     }
 
-    initData(url) {
+    //removeData() {
+    //    "use strict";
+    //    //dropCollection(this.endPoint);
+    //    //dropCollection(this.endPoint + "_Type");
+    //    //dropCollection(this.endPoint + "_Period");
+    //}
+
+
+    initData(endPoint) {
         "use strict";
 
         var seft = this;
         var functionTimeOut = function () {
 
-            findDataReturnObjectFromCollection(url, {}).then((rs) => {
-                if (rs) {
-                    var numPayment = rs.numPayment;
-                    if (numPayment <= 0) {
-                        bot.sendMessage(seft.chatId, "ĐÃ QUÁ LÂU MÀ CHƯA THẤY CÓ PAYMENT! HUHU");
-                    }
+            findDataReturnObjectFromCollection(endPoint + "_Status", {}).then((result) => {
+                if(!result || !result.isActive) {
+                    console.log(endPoint + " ĐANG TRONG TRẠNG THÁI UNACTIVE");
+                } else {
+                    findDataReturnArrayFromCollection(endPoint, {}).then((rs) => {
+                        if (rs && rs.length > 0) {
+                            rs.forEach((item) => {
+                                var numPayment = item.numPayment;
+                                if (numPayment <= 0) {
+                                    bot.sendMessage(seft.chatId, "ĐÃ QUÁ LÂU MÀ CHƯA THẤY CÓ PAYMENT Ở CHANEL " + item.chanel);
+                                }
 
-                    updateDataFromCollection(url, {}, {numPayment: 0});
-                    findDataReturnObjectFromCollection(url + "_PERIOD", {}).then((result) => {
-                        var timeOut = result.period;
-                        setTimeout(functionTimeOut, timeOut);
+                                updateDataFromCollection(endPoint, {chanel : item.chanel}, {numPayment: 0});
+                            })
+                        } else {
+                            allChanelPayment.forEach((item) => {
+                                insertDataToCollection(endPoint, {chanel: item, numPayment: 0}).then(doNothing, doNothing);
+                            })
+                        }
                     }, doNothing);
                 }
             }, doNothing);
+
+            findDataReturnObjectFromCollection(endPoint + "_Period", {}).then((result) => {
+                var timeOut = result.period;
+                setTimeout(functionTimeOut, timeOut);
+            }, doNothing);
+
         };
 
-        findDataReturnObjectFromCollection(url + "_TYPE", {}).then((rs) => {
+        findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rs) => {
             if (!rs) {
-                insertDataToCollection(url + "_TYPE", {type: "PAYMENT"}).then(doNothing, doNothing);
+                insertDataToCollection(endPoint + "_Type", {type: "PAYMENT"}).then(doNothing, doNothing);
             }
         }, doNothing);
 
+        findDataReturnObjectFromCollection(endPoint + "_Status", {}).then((result) => {
+            if (!result) {
+                insertDataToCollection(endPoint + "_Status", {isActive: true}).then(doNothing, doNothing);
+            }
+        }, doNothing);
 
-        findDataReturnObjectFromCollection(url, {}).then((rsMsg) => {
-            if (rsMsg) {
-                findDataReturnObjectFromCollection(url + "_PERIOD", {}).then((result) => {
+        findDataReturnArrayFromCollection(endPoint, {}).then((rsMsg) => {
+            if (rsMsg && rsMsg.length > 0) {
+                findDataReturnObjectFromCollection(endPoint + "_Period", {}).then((result) => {
                     if (result) {
                         var timeOut = result.period;
                         setTimeout(functionTimeOut, timeOut);
                     } else {
-                        insertDataToCollection(url + "_PERIOD", {period: defaultPeriod}).then((ok1) => {
+                        insertDataToCollection(endPoint + "_Period", {period: defaultPeriod}).then((ok1) => {
                             setTimeout(functionTimeOut, defaultPeriod);
                         }, doNothing);
                     }
                 }, doNothing);
             } else {
-                insertDataToCollection(url, {numPayment: 0}).then((ok) => {
-                    insertDataToCollection(url + "_PERIOD", {period: defaultPeriod}).then((ok1) => {
-                        setTimeout(functionTimeOut, defaultPeriod);
-                    }, doNothing);
+                allChanelPayment.forEach((item) => {
+                    insertDataToCollection(endPoint, {chanel: item, numPayment: 0}).then(doNothing, doNothing);
+                });
+                insertDataToCollection(endPoint + "_Period", {period: defaultPeriod}).then((ok1) => {
+                    setTimeout(functionTimeOut, defaultPeriod);
                 }, doNothing);
             }
         }, doNothing);
@@ -806,10 +972,11 @@ class Payment {
 
     doCheckAlert(index, data) {
         "use strict";
-        findDataReturnObjectFromCollection(this.url, {}).then((rs) => {
+        console.log("add Payment");
+        findDataReturnObjectFromCollection(this.endPoint, {chanel: data}).then((rs) => {
             if (rs) {
                 var numPayment = rs.numPayment;
-                updateDataFromCollection(this.url, {}, {numPayment: numPayment + 1});
+                updateDataFromCollection(this.endPoint, {chanel: data}, {chanel: data, numPayment: numPayment + 1});
             } else {
                 return false;
             }
@@ -818,17 +985,16 @@ class Payment {
     }
 
 }
-
 function testIsStart(chatId) {
     "use strict";
-    return listChatId.includes(chatId);
+    return listGroupChatId.includes(chatId);
 }
 
 function startChanel(chatId) {
     "use strict";
-    if (!listChatId.includes(chatId)) {
-        listChatId.push(chatId);
-        updateDataFromCollection("listChatId", {}, {data: listChatId});
+    if (!listGroupChatId.includes(chatId)) {
+        listGroupChatId.push(chatId);
+        updateDataFromCollection("GroupChatInfo", {}, {listGroupChatId: listGroupChatId});
         return true;
     }
     return false;
@@ -836,21 +1002,21 @@ function startChanel(chatId) {
 
 bot.onText(/\/changePasscode (.+)/, (msg, match) => {
     const chatId = msg.chat.id;
-    var newValue = match[1];
-    newValue = md5(newValue);
+    var newPasscode = match[1];
+    newPasscode = md5(newPasscode);
 
-    findDataReturnObjectFromCollection(chatId + "_IP", {}).then((rs2) => {
+    findDataReturnObjectFromCollection(chatId + "_Ip", {}).then((rs2) => {
         if (rs2) {
             var ip = rs2.ip;
-            findDataReturnObjectFromCollection(chatId + "_HASHSTRING", {}).then((rs3) => {
+            findDataReturnObjectFromCollection(chatId + "_Passcode", {}).then((rs3) => {
                 if (rs3) {
-                    var hashString = rs3.hashString;
+                    var passcode = rs3.passcode;
                     updateClient({
-                        hashString: hashString,
-                        newHashString: newValue
-                    }, ip + ":" + serverPort + "/hashString", chatId, (response) => {
+                        passcode: passcode,
+                        newPasscode: newPasscode
+                    }, ip + ":" + serverPort + "/passcode", chatId, (response) => {
                         "use strict";
-                        updateDataFromCollection(chatId + "_HASHSTRING", {}, {hashString: newValue});
+                        updateDataFromCollection(chatId + "_Passcode", {}, {passcode: newPasscode});
                         bot.sendMessage(chatId, "Cập nhật Passcode thành công");
                     });
                 } else {
@@ -864,41 +1030,78 @@ bot.onText(/\/changePasscode (.+)/, (msg, match) => {
 
 });
 
+bot.onText(/\/changeIp (.+)/, (msg, match) => {
+    const chatId = msg.chat.id;
+    var newIp = match[1];
+    newIp = getIpWithNormalFormat(newIp);
+    if(newIp == null) {
+        bot.sendMessage(chatId, "IP BẠN NHẬP KHÔNG ĐÚNG ĐỊNH DẠNG");
+        return;
+    }
+
+    findDataReturnObjectFromCollection(chatId + "_Ip", {}).then((rs2) => {
+        if (rs2) {
+            var ip = rs2.ip;
+            updateDataFromCollection(chatId + "_Ip", {ip : ip} ,{ip : newIp});
+        } else {
+            insertDataToCollection(chatId + "_Ip", {ip : newIp}).then(doNothing, doNothing);
+        }
+        bot.sendMessage(chatId, "THAY ĐỔI IP SERVER GAME THÀNH CÔNG");
+    }, doNothing);
+
+});
+
+//bot.onText(/\/removeRoute (.+)/, (msg, match) => {
+//    const chatId = msg.chat.id;
+//    var endPoint = match[1];
+//    if(checkExistEndPoint(endPoint)) {
+//        deleteDataFromCollection("EndPointInfo", {endPoint : endPoint, groupId : chatId});
+//        app.post('/' + endPoint, (req, res) => {
+//            "use strict";
+//            console.log("DO NOTHING");
+//        });
+//
+//        bot.sendMessage(chatId, "Xóa EndPoint Thành Công");
+//    } else {
+//        bot.sendMessage(chatId, "ENDPOINT CHƯA TỒN TẠI TRONG CHANEL");
+//    }
+//});
+
 bot.onText(/\/changePeriod (.+) (.+)/, (msg, match) => {
     const chatId = msg.chat.id;
-    var newValue = match[2];
+    var newValueDuration = match[2];
 
-    console.log(newValue);
+    console.log(newValueDuration);
     try {
-        newValue = parseInt(newValue);
+        newValueDuration = parseInt(newValueDuration);
     } catch (e) {
         bot.sendMessage(chatId, "GỬI KHÔNG ĐÚNG ĐỊNH DẠNG");
         return;
     }
 
-    if (newValue % minDuration != 0 || newValue <= 0) {
+    if (newValueDuration % minDuration != 0 || newValueDuration <= 0) {
         bot.sendMessage(chatId, "PERIOD phải là số chia hết cho " + minDuration + "(s)");
         return;
     }
-    var url = match[1];
+    var endPoint = match[1];
 
-    findDataReturnObjectFromCollection("listURL", {chatId: chatId, data: url}).then((rsMessage) => {
+    findDataReturnObjectFromCollection("EndPointInfo", {groupId: chatId, endPoint: endPoint}).then((rsMessage) => {
         "use strict";
         if (rsMessage) {
-            findDataReturnObjectFromCollection(url + "_TYPE", {}).then((rs1) => {
+            findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rs1) => {
                 "use strict";
                 if (rs1) {
                     switch (rs1.type) {
                         case "CCU_AND_QUEUE":
-                            findDataReturnObjectFromCollection(chatId + "_IP", {}).then((rs2) => {
+                            findDataReturnObjectFromCollection(chatId + "_Ip", {}).then((rs2) => {
                                 if (rs2) {
                                     var ip = rs2.ip;
-                                    findDataReturnObjectFromCollection(chatId + "_HASHSTRING", {}).then((rs3) => {
+                                    findDataReturnObjectFromCollection(chatId + "_Passcode", {}).then((rs3) => {
                                         if (rs3) {
-                                            var hashString = rs3.hashString;
+                                            var passcode = rs3.passcode;
                                             updateClient({
-                                                hashString: hashString,
-                                                duration: newValue
+                                                passcode: passcode,
+                                                duration: newValueDuration
                                             }, ip + ":" + serverPort + "/duration", chatId, doNothing);
                                             bot.sendMessage(chatId, "Cập nhật Period Thành công")
                                         } else {
@@ -911,10 +1114,10 @@ bot.onText(/\/changePeriod (.+) (.+)/, (msg, match) => {
                             }, doNothing);
                             break;
                         case "PAYMENT":
-                            findDataReturnObjectFromCollection(url + "_PERIOD", {}).then((rs) => {
+                            findDataReturnObjectFromCollection(endPoint + "_Period", {}).then((rs) => {
                                 "use strict";
                                 if (rs) {
-                                    updateDataFromCollection(url + "_PERIOD", {}, {period: newValue * 1000});
+                                    updateDataFromCollection(endPoint + "_Period", {}, {period: newValueDuration * 1000});
                                     bot.sendMessage(chatId, "Cập nhật Period Thành công")
                                 }
                             }, doNothing);
@@ -950,17 +1153,17 @@ bot.onText(/\/changePercent (.+) (.+)/, (msg, match) => {
         bot.sendMessage(chatId, "TỶ LỆ PHẢI NẰM TRONG KHOẢNG TỪ LỚN HƠN 0 ĐẾN NHỎ HƠN BẰNG 1");
         return;
     }
-    var url = match[1];
+    var endPoint = match[1];
 
-    findDataReturnObjectFromCollection("listURL", {chatId: chatId, data: url}).then((rsMessage) => {
+    findDataReturnObjectFromCollection("EndPointInfo", {groupId: chatId, endPoint: endPoint}).then((rsMessage) => {
         "use strict";
         if (rsMessage) {
-            findDataReturnObjectFromCollection(url + "_TYPE", {}).then((rs1) => {
+            findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rs1) => {
                 "use strict";
                 if (rs1) {
                     switch (rs1.type) {
                         case "CCU_AND_QUEUE":
-                            updateDataFromCollection(url + "_PERCENT", {}, {percent: newValue});
+                            updateDataFromCollection(endPoint + "_Percent", {}, {percent: newValue});
                             bot.sendMessage(chatId, "THAY ĐỔI THÀNH CÔNG!");
                             break;
                         default :
@@ -978,7 +1181,7 @@ bot.onText(/\/changePercent (.+) (.+)/, (msg, match) => {
     }, doNothing);
 });
 
-bot.onText(/\/changeContinious (.+) (.+)/, (msg, match) => {
+bot.onText(/\/changeMaxTimesContiniousAlert (.+) (.+)/, (msg, match) => {
     const chatId = msg.chat.id;
     var newValue = match[2];
 
@@ -994,17 +1197,17 @@ bot.onText(/\/changeContinious (.+) (.+)/, (msg, match) => {
         bot.sendMessage(chatId, "GIÁ TRỊ SỐ LẦN THÔNG BÁO LIÊN TỤC LỚN NHẤT CẦN LÀ MỘT SỐ NGUYÊN LỚN HƠN 0");
         return;
     }
-    var url = match[1];
+    var endPoint = match[1];
 
-    findDataReturnObjectFromCollection("listURL", {chatId: chatId, data: url}).then((rsMessage) => {
+    findDataReturnObjectFromCollection("EndPointInfo", {groupId: chatId, endPoint: endPoint}).then((rsMessage) => {
         "use strict";
         if (rsMessage) {
-            findDataReturnObjectFromCollection(url + "_TYPE", {}).then((rs1) => {
+            findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rs1) => {
                 "use strict";
                 if (rs1) {
                     switch (rs1.type) {
                         case "CCU_AND_QUEUE":
-                            updateDataFromCollection(url + "_MAX_TIMES_ALERT_CONTINIOUS", {}, {maxTimeAlert: newValue});
+                            updateDataFromCollection(endPoint + "_MaxTimesAlertContinuous", {}, {maxTimeAlert: newValue});
                             bot.sendMessage(chatId, "THAY ĐỔI THÀNH CÔNG!");
                             break;
                         default :
@@ -1022,7 +1225,7 @@ bot.onText(/\/changeContinious (.+) (.+)/, (msg, match) => {
     }, doNothing);
 });
 
-bot.onText(/\/startBOT/, (msg) => {
+bot.onText(/\/startBot/, (msg) => {
     const chatId = msg.chat.id;
     var result = startChanel(chatId);
 
@@ -1032,24 +1235,24 @@ bot.onText(/\/startBOT/, (msg) => {
 
 bot.onText(/\/listEndPoint/, (msg) => {
     const chatId = msg.chat.id;
-    findDataReturnArrayFromCollection("listURL", {chatId: chatId}).then((rs) => {
+    findDataReturnArrayFromCollection("EndPointInfo", {groupId: chatId}).then((rs) => {
         "use strict";
         if (rs.length > 0) {
             rs.forEach((item) => {
                 var result = "";
-                var url = item.data;
-                result += url;
-                findDataReturnObjectFromCollection(url + "_TYPE", {}).then((rst) => {
+                var endPoint = item.data;
+                result += endPoint;
+                findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rst) => {
                     if (rst) {
                         result += " | TYPE : " + rst.type;
-                        findDataReturnObjectFromCollection(url + "_PERCENT", {}).then((rsMsg) => {
+                        findDataReturnObjectFromCollection(endPoint + "_Percent", {}).then((rsMsg) => {
                             if (rsMsg) {
                                 result += " | COEFFICIENT : " + rsMsg.percent;
                                 bot.sendMessage(chatId, result);
                             }
                         }, doNothing);
 
-                        findDataReturnObjectFromCollection(url + "_PERIOD", {}).then((rsMsg) => {
+                        findDataReturnObjectFromCollection(endPoint + "_Period", {}).then((rsMsg) => {
                             if (rsMsg) {
                                 var date = new Date(null);
                                 date.setMilliseconds(rsMsg.period);
@@ -1084,16 +1287,16 @@ function getDayAfter(crrDay) {
     return crrDay + 1;
 }
 
-function checkExistURL(url) {
+function checkExistEndPoint(endPoint) {
     "use strict";
-    return listChatURL.includes(url);
+    return listEndPoint.includes(endPoint);
 }
 
 bot.onText(/\/addEndPoint (.+)/, (msg, match) => {
     const chatId = msg.chat.id;
-    const url = match[1];
+    const endPoint = match[1];
 
-    if (!checkIsCorrectURL(url)) {
+    if (!checkIsCorrectFormatEndPoint(endPoint)) {
         bot.sendMessage(chatId, "DINH DANG URL CHUA DUNG!");
         return;
     }
@@ -1102,14 +1305,14 @@ bot.onText(/\/addEndPoint (.+)/, (msg, match) => {
         bot.sendMessage(chatId, "CHANEL CHUA DUOC BAT DAU. VUI LONG NHAP 'startBOT'");
         return;
     }
-    if (checkExistURL(url)) {
+    if (checkExistEndPoint(endPoint)) {
         bot.sendMessage(chatId, "URL NAY DA TON TAI!");
         return;
     }
 
-    listChatURL.push(url);
+    listEndPoint.push(endPoint);
 
-    insertDataToCollection("listURL", {chatId: chatId, data: url}).then(doNothing, doNothing);
+    insertDataToCollection("EndPointInfo", {groupId: chatId, endPoint: endPoint}).then(doNothing, doNothing);
 
     bot.sendMessage(chatId, 'Vui lòng chọn loại!', {
         reply_markup: {
@@ -1117,15 +1320,15 @@ bot.onText(/\/addEndPoint (.+)/, (msg, match) => {
                 [
                     {
                         text: 'CCU AND QUEUE',
-                        callback_data: ('CCU_AND_QUEUE ' + url)
+                        callback_data: ('CCU_AND_QUEUE ' + endPoint)
                     },
                     //{
                     //    text: 'QUEUE',
-                    //    callback_data: ('QUEUE ' + url)
+                    //    callback_data: ('QUEUE ' + endPoint)
                     //},
                     {
                         text: 'PAYMENT',
-                        callback_data: ('PAYMENT ' + url)
+                        callback_data: ('PAYMENT ' + endPoint)
                     }
                 ]
             ]
@@ -1133,17 +1336,58 @@ bot.onText(/\/addEndPoint (.+)/, (msg, match) => {
     });
 });
 
-function checkIsCorrectURL(url) {
+function checkIsCorrectFormatEndPoint(endPoint) {
     "use strict";
-    var regrex = /.*\s.*/g;
-    return !url.match(regrex);
+    var regex = /.*\s.*/g;
+    return !endPoint.match(regex);
 }
 
-bot.on('sticker', (msg) => {
+//bot.on('sticker', (msg) => {
+//    "use strict";
+//    const chatId = msg.chat.id;
+//    bot.sendMessage(chatId, "👍");
+//
+//});
+
+bot.onText(/\/cleanDataCcu (.+)/, (msg, match) => {
     "use strict";
     const chatId = msg.chat.id;
-    bot.sendMessage(chatId, "👍");
+    var endPoint = match[1];
+    findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rs) => {
+        if(!rs) {
+            bot.sendMessage(chatId, "ENDPOINT BẠN VỪA NHẬP ĐANG KHÔNG ĐƯỢC SỬ DỤNG");
+        } else {
+            if(rs.type == "CCU_AND_QUEUE") {
+                var objectChoose = new Ccu(endPoint, chatId);
+                objectChoose.removeData();
+                bot.sendMessage(chatId, "Clean Dữ liệu CCU Thành công");
+            } else {
+                bot.sendMessage(chatId, "ENDPOINT BẠN VỪA NHẬP KHÔNG DÀNH CHO CCU");
+            }
+        }
+    }, doNothing);
+});
 
+bot.onText(/\/changeStatus (.+)/, (msg, match) => {
+    "use strict";
+    const chatId = msg.chat.id;
+    var endPoint = match[1];
+    findDataReturnObjectFromCollection(endPoint + "_Status", {}).then((r) => {
+        if(r) {
+            var isActive = r.isActive;
+            updateDataFromCollection(endPoint + "_Status", {isActive : isActive}, {isActive : !isActive});
+            if(!isActive) {
+                bot.sendMessage(chatId, "Active EndPoint Thành công");
+            } else {
+                bot.sendMessage(chatId, "Inactive EndPoint Thành công");
+            }
+
+        } else {
+            bot.sendMessage(chatId, "EndPoint này đang không được sử dụng");
+        }
+    }, (e) => {
+        bot.sendMessage(chatId, "LỖI KẾT NỐI DB");
+    });
 });
 
 bot.on('callback_query', query => {
@@ -1152,18 +1396,18 @@ bot.on('callback_query', query => {
 
     var data = query.data.split(' ');
     var type = data[0];
-    var url = data[1];
+    var endPoint = data[1];
 
 
     console.log("type : " + type);
-    console.log("url : " + url);
+    console.log("endPoint : " + endPoint);
 
-    findDataReturnObjectFromCollection(url + "_TYPE", {}).then((result) => {
+    findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((result) => {
         if (!result) {
-            findDataReturnObjectFromCollection("listURL", {data: url}).then((rs) => {
+            findDataReturnObjectFromCollection("EndPointInfo", {endPoint: endPoint}).then((rs) => {
                 if (rs) {
-                    var url = rs.data;
-                    addURL(url, chatId, type);
+                    var endPoint = rs.endPoint;
+                    addEndPoint(endPoint, chatId, type);
                     bot.sendMessage(chatId, "ĐÃ SẴN SÀNG!");
                 }
 
