@@ -23,37 +23,76 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="app.js" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/app.js">
+      <file leaf-file-name="server.js" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/server.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.27351916">
-              <caret line="434" column="22" selection-start-line="434" selection-start-column="22" selection-end-line="434" selection-end-column="22" />
+            <state vertical-scroll-proportion="0.81426203">
+              <caret line="326" column="29" selection-start-line="326" selection-start-column="29" selection-end-line="326" selection-end-column="29" />
               <folding>
-                <element signature="n#!!block;n#updateClient#0" expanded="false" />
                 <element signature="n#!!block;n#createDatabase#0" expanded="false" />
+                <element signature="e#2268#2271#0" expanded="false" />
                 <element signature="n#!!block;n#createCollection#0" expanded="false" />
                 <element signature="n#!!block;n#insertDataToCollection#0" expanded="false" />
+                <element signature="n#!!block;n#insertManyDataToCollection#0" expanded="false" />
                 <element signature="n#!!block;n#findDataReturnObjectFromCollection#0" expanded="false" />
                 <element signature="n#!!block;n#findDataReturnArrayFromCollection#0" expanded="false" />
+                <element signature="n#!!block;n#deleteDataFromCollection#0" expanded="false" />
                 <element signature="n#!!block;n#updateDataFromCollection#0" expanded="false" />
                 <element signature="n#!!block;n#dropCollection#0" expanded="false" />
-                <element signature="e#6708#7134#0" expanded="false" />
-                <element signature="e#7148#7282#0" expanded="false" />
-                <element signature="n#!!block;n#doAfterGetListId#0" expanded="false" />
-                <element signature="e#7320#7390#0" expanded="false" />
-                <element signature="e#8816#8846#0" expanded="false" />
-                <element signature="n#!!block;n#testIsStart#0" expanded="false" />
-                <element signature="n#!!block;n#startChanel#0" expanded="false" />
-                <element signature="e#38600#39691#0" expanded="false" />
-                <element signature="e#39741#40373#0" expanded="false" />
-                <element signature="e#40377#40429#0" expanded="false" />
-                <element signature="e#47240#47422#0" expanded="false" />
-                <element signature="e#47464#49313#0" expanded="false" />
+                <element signature="e#7585#7955#0" expanded="false" />
+                <element signature="e#7969#8103#0" expanded="false" />
+                <element signature="n#!!block;n#getObjectChoose#0" expanded="false" />
+                <element signature="n#Queue#0" expanded="false" />
+                <element signature="n#CcuAndQueue#0" expanded="false" />
+                <element signature="e#31057#31074#0" expanded="false" />
+                <element signature="n#Payment#0" expanded="false" />
+                <element signature="e#34049#34065#0" expanded="false" />
+                <element signature="e#38344#39435#0" expanded="false" />
+                <element signature="e#40176#43250#0" expanded="false" />
+                <element signature="e#43310#44805#0" expanded="false" />
+                <element signature="e#44881#46392#0" expanded="false" />
+                <element signature="e#46430#46612#0" expanded="false" />
+                <element signature="e#46654#48503#0" expanded="false" />
                 <element signature="n#!!block;n#getDayBefore#0" expanded="false" />
                 <element signature="n#!!block;n#getDayAfter#0" expanded="false" />
-                <element signature="n#!!block;n#checkExistEndPoint#0" expanded="false" />
-                <element signature="e#51030#51060#0" expanded="false" />
+                <element signature="n#!!block;n#checkIsCorrectFormatEndPoint#0" expanded="false" />
+                <element signature="e#52108#52138#0" expanded="false" />
+                <element signature="e#52290#52943#0" expanded="false" />
+                <element signature="e#52997#53707#0" expanded="false" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="paymentType.csv" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/paymentType.csv">
+          <provider editor-type-id="com.intellij.database.editor.CsvTableFileEditorProvider">
+            <state />
+          </provider>
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-0.0">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ip.json" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/ip.json">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-1.3076923">
+              <caret line="2" column="1" selection-start-line="2" selection-start-column="1" selection-end-line="2" selection-end-column="1" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="node-Bot.iml" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/node-Bot.iml">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -61,18 +100,8 @@
       <file leaf-file-name="package.json" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/package.json">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-18.961538">
-              <caret line="29" column="25" selection-start-line="29" selection-start-column="25" selection-end-line="29" selection-end-column="25" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="History.md" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/node_modules/express/History.md">
-          <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="439" column="27" selection-start-line="439" selection-start-column="27" selection-end-line="439" selection-end-column="27" />
+              <caret line="17" column="10" selection-start-line="13" selection-start-column="5" selection-end-line="13" selection-end-column="10" />
               <folding />
             </state>
           </provider>
@@ -102,14 +131,14 @@
       </file>
       <file leaf-file-name="LICENSE" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/node_modules/express-remove-route/LICENSE">
+          <provider editor-type-id="com.intellij.database.editor.CsvTableFileEditorProvider">
+            <state />
+          </provider>
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
               <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
               <folding />
             </state>
-          </provider>
-          <provider editor-type-id="com.intellij.database.editor.CsvTableFileEditorProvider">
-            <state />
           </provider>
         </entry>
       </file>
@@ -119,30 +148,6 @@
             <state vertical-scroll-proportion="0.0">
               <caret line="16" column="4" selection-start-line="16" selection-start-column="4" selection-end-line="16" selection-end-column="4" />
               <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="index.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/node_modules/express/index.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding>
-                <element signature="n#!!doc" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="express.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/node_modules/express/lib/express.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="17" column="9" selection-start-line="17" selection-start-column="4" selection-end-line="17" selection-end-column="9" />
-              <folding>
-                <element signature="n#!!doc" expanded="true" />
-              </folding>
             </state>
           </provider>
         </entry>
@@ -173,6 +178,8 @@
         <option value="$PROJECT_DIR$/otherwise.js" />
         <option value="$PROJECT_DIR$/node_modules/express-remove-route/index.js" />
         <option value="$PROJECT_DIR$/app.js" />
+        <option value="$PROJECT_DIR$/package.json" />
+        <option value="$PROJECT_DIR$/server.js" />
       </list>
     </option>
   </component>
@@ -241,6 +248,8 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="PackagesPane" />
+      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -262,8 +271,6 @@
         </subPane>
       </pane>
       <pane id="Scope" />
-      <pane id="PackagesPane" />
-      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -278,14 +285,18 @@
     <property name="JavaScriptWeakerCompletionTypeGuess" value="true" />
     <property name="FullScreen" value="false" />
     <property name="SearchEverywhereHistoryKey" value="rou&#9;FILE&#9;file://E:/P13/node-Bot/node_modules/express/lib/router/route.js&#10;Pay&#9;null&#9;null" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/server.js" />
   </component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="E:\P13\node-Bot" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="E:\P13\node-Bot" />
     </key>
   </component>
-  <component name="RunManager" selected="Node.js.app.js">
-    <configuration default="false" name="app.js" type="NodeJSConfigurationType" factoryName="Node.js" temporary="true" path-to-node="C:/Program Files/nodejs/node" path-to-js-file="app.js" working-dir="$PROJECT_DIR$">
+  <component name="RunManager" selected="Node.js.server.js">
+    <configuration default="false" name="server.js" type="NodeJSConfigurationType" factoryName="Node.js" temporary="true" path-to-node="C:/Program Files/nodejs/node" path-to-js-file="server.js" working-dir="$PROJECT_DIR$">
       <method />
     </configuration>
     <configuration default="true" type="#org.jetbrains.idea.devkit.run.PluginConfigurationType" factoryName="Plugin">
@@ -542,11 +553,11 @@
     </configuration>
     <list size="2">
       <item index="0" class="java.lang.String" itemvalue="Node.js.bin\www" />
-      <item index="1" class="java.lang.String" itemvalue="Node.js.app.js" />
+      <item index="1" class="java.lang.String" itemvalue="Node.js.server.js" />
     </list>
     <recent_temporary>
       <list size="1">
-        <item index="0" class="java.lang.String" itemvalue="Node.js.app.js" />
+        <item index="0" class="java.lang.String" itemvalue="Node.js.server.js" />
       </list>
     </recent_temporary>
   </component>
@@ -592,12 +603,14 @@
       <workItem from="1547000440168" duration="6908000" />
       <workItem from="1547084599766" duration="15654000" />
       <workItem from="1547170979289" duration="6363000" />
-      <workItem from="1547429903225" duration="13896000" />
+      <workItem from="1547429903225" duration="17551000" />
+      <workItem from="1547518023856" duration="2933000" />
+      <workItem from="1547539671320" duration="9129000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="324210000" />
+    <option name="totallyTimeSpent" value="339927000" />
   </component>
   <component name="TodoView" selected-index="1">
     <todo-panel id="selected-file">
@@ -619,13 +632,14 @@
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2857143" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2857143" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32683983" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.15511727" sideWeight="0.5" order="4" side_tool="false" content_ui="combo" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32792208" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3065032" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3065032" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="UI Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39935064" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -633,8 +647,7 @@
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="combo" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32792208" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="combo" />
       <window_info id="Dynamic Properties" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
@@ -651,7 +664,7 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="44" />
+      <option name="time" value="45" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -660,17 +673,70 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/node_modules/mongodb-core/lib/connection/connection.js">
+    <entry file="file://$PROJECT_DIR$/node_modules/express/lib/router/layer.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="628" column="0" selection-start-line="628" selection-start-column="0" selection-end-line="628" selection-end-column="0" />
+          <caret line="94" column="4" selection-start-line="94" selection-start-column="4" selection-end-line="94" selection-end-column="4" />
         </state>
       </provider>
     </entry>
-    <entry file="jar://$APPLICATION_PLUGINS_DIR$/NodeJS/lib/NodeJS.jar!/com/jetbrains/nodejs/library/node-globals-stub.js">
+    <entry file="file://$PROJECT_DIR$/node_modules/express/lib/response.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="360" column="4" selection-start-line="360" selection-start-column="4" selection-end-line="360" selection-end-column="4" />
+          <caret line="688" column="39" selection-start-line="688" selection-start-column="39" selection-end-line="688" selection-end-column="39" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/routes/index.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="9" column="0" selection-start-line="9" selection-start-column="0" selection-end-line="9" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/bin/www">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="15" column="0" selection-start-line="15" selection-start-column="0" selection-end-line="15" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="n#!!block;n#createDatabase#0" expanded="false" />
+            <element signature="e#2268#2271#0" expanded="false" />
+            <element signature="n#!!block;n#createCollection#0" expanded="false" />
+            <element signature="n#!!block;n#insertDataToCollection#0" expanded="false" />
+            <element signature="n#!!block;n#insertManyDataToCollection#0" expanded="false" />
+            <element signature="n#!!block;n#findDataReturnObjectFromCollection#0" expanded="false" />
+            <element signature="n#!!block;n#findDataReturnArrayFromCollection#0" expanded="false" />
+            <element signature="n#!!block;n#deleteDataFromCollection#0" expanded="false" />
+            <element signature="n#!!block;n#updateDataFromCollection#0" expanded="false" />
+            <element signature="n#!!block;n#dropCollection#0" expanded="false" />
+            <element signature="e#7585#7955#0" expanded="false" />
+            <element signature="e#7969#8103#0" expanded="false" />
+            <element signature="n#!!block;n#getObjectChoose#0" expanded="false" />
+            <element signature="n#Queue#0" expanded="false" />
+            <element signature="n#CcuAndQueue#0" expanded="false" />
+            <element signature="e#31057#31074#0" expanded="false" />
+            <element signature="n#Payment#0" expanded="false" />
+            <element signature="e#34049#34065#0" expanded="false" />
+            <element signature="e#38344#39435#0" expanded="false" />
+            <element signature="e#40176#43250#0" expanded="false" />
+            <element signature="e#43310#44805#0" expanded="false" />
+            <element signature="e#44881#46392#0" expanded="false" />
+            <element signature="e#46430#46612#0" expanded="false" />
+            <element signature="e#46654#48503#0" expanded="false" />
+            <element signature="n#!!block;n#getDayBefore#0" expanded="false" />
+            <element signature="n#!!block;n#getDayAfter#0" expanded="false" />
+            <element signature="n#!!block;n#checkIsCorrectFormatEndPoint#0" expanded="false" />
+            <element signature="e#52108#52138#0" expanded="false" />
+            <element signature="e#52290#52943#0" expanded="false" />
+            <element signature="e#52997#53707#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -702,96 +768,41 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app.js">
+    <entry file="file://$PROJECT_DIR$/server.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="n#!!block;n#updateClient#0" expanded="false" />
             <element signature="n#!!block;n#createDatabase#0" expanded="false" />
+            <element signature="e#2268#2271#0" expanded="false" />
             <element signature="n#!!block;n#createCollection#0" expanded="false" />
             <element signature="n#!!block;n#insertDataToCollection#0" expanded="false" />
+            <element signature="n#!!block;n#insertManyDataToCollection#0" expanded="false" />
             <element signature="n#!!block;n#findDataReturnObjectFromCollection#0" expanded="false" />
             <element signature="n#!!block;n#findDataReturnArrayFromCollection#0" expanded="false" />
+            <element signature="n#!!block;n#deleteDataFromCollection#0" expanded="false" />
             <element signature="n#!!block;n#updateDataFromCollection#0" expanded="false" />
             <element signature="n#!!block;n#dropCollection#0" expanded="false" />
-            <element signature="e#6708#7134#0" expanded="false" />
-            <element signature="e#7148#7282#0" expanded="false" />
-            <element signature="n#!!block;n#doAfterGetListId#0" expanded="false" />
-            <element signature="e#7320#7390#0" expanded="false" />
-            <element signature="e#8816#8846#0" expanded="false" />
-            <element signature="n#!!block;n#testIsStart#0" expanded="false" />
-            <element signature="n#!!block;n#startChanel#0" expanded="false" />
-            <element signature="e#38600#39691#0" expanded="false" />
-            <element signature="e#39741#40373#0" expanded="false" />
-            <element signature="e#40377#40429#0" expanded="false" />
-            <element signature="e#47240#47422#0" expanded="false" />
-            <element signature="e#47464#49313#0" expanded="false" />
+            <element signature="e#7585#7955#0" expanded="false" />
+            <element signature="e#7969#8103#0" expanded="false" />
+            <element signature="n#!!block;n#getObjectChoose#0" expanded="false" />
+            <element signature="n#Queue#0" expanded="false" />
+            <element signature="n#CcuAndQueue#0" expanded="false" />
+            <element signature="e#31057#31074#0" expanded="false" />
+            <element signature="n#Payment#0" expanded="false" />
+            <element signature="e#34049#34065#0" expanded="false" />
+            <element signature="e#38344#39435#0" expanded="false" />
+            <element signature="e#40176#43250#0" expanded="false" />
+            <element signature="e#43310#44805#0" expanded="false" />
+            <element signature="e#44881#46392#0" expanded="false" />
+            <element signature="e#46430#46612#0" expanded="false" />
+            <element signature="e#46654#48503#0" expanded="false" />
             <element signature="n#!!block;n#getDayBefore#0" expanded="false" />
             <element signature="n#!!block;n#getDayAfter#0" expanded="false" />
-            <element signature="n#!!block;n#checkExistEndPoint#0" expanded="false" />
-            <element signature="e#51030#51060#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/node_modules/express/lib/router/layer.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="94" column="4" selection-start-line="94" selection-start-column="4" selection-end-line="94" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/node_modules/express/lib/response.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="688" column="39" selection-start-line="688" selection-start-column="39" selection-end-line="688" selection-end-column="39" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/routes/index.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="9" column="0" selection-start-line="9" selection-start-column="0" selection-end-line="9" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/bin/www">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="15" column="0" selection-start-line="15" selection-start-column="0" selection-end-line="15" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="n#!!block;n#updateClient#0" expanded="false" />
-            <element signature="n#!!block;n#createDatabase#0" expanded="false" />
-            <element signature="n#!!block;n#createCollection#0" expanded="false" />
-            <element signature="n#!!block;n#insertDataToCollection#0" expanded="false" />
-            <element signature="n#!!block;n#findDataReturnObjectFromCollection#0" expanded="false" />
-            <element signature="n#!!block;n#findDataReturnArrayFromCollection#0" expanded="false" />
-            <element signature="n#!!block;n#updateDataFromCollection#0" expanded="false" />
-            <element signature="n#!!block;n#dropCollection#0" expanded="false" />
-            <element signature="e#6708#7134#0" expanded="false" />
-            <element signature="e#7148#7282#0" expanded="false" />
-            <element signature="n#!!block;n#doAfterGetListId#0" expanded="false" />
-            <element signature="e#7320#7390#0" expanded="false" />
-            <element signature="e#8816#8846#0" expanded="false" />
-            <element signature="n#!!block;n#testIsStart#0" expanded="false" />
-            <element signature="n#!!block;n#startChanel#0" expanded="false" />
-            <element signature="e#38600#39691#0" expanded="false" />
-            <element signature="e#39741#40373#0" expanded="false" />
-            <element signature="e#40377#40429#0" expanded="false" />
-            <element signature="e#47240#47422#0" expanded="false" />
-            <element signature="e#47464#49313#0" expanded="false" />
-            <element signature="n#!!block;n#getDayBefore#0" expanded="false" />
-            <element signature="n#!!block;n#getDayAfter#0" expanded="false" />
-            <element signature="n#!!block;n#checkExistEndPoint#0" expanded="false" />
-            <element signature="e#51030#51060#0" expanded="false" />
+            <element signature="n#!!block;n#checkIsCorrectFormatEndPoint#0" expanded="false" />
+            <element signature="e#52108#52138#0" expanded="false" />
+            <element signature="e#52290#52943#0" expanded="false" />
+            <element signature="e#52997#53707#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -817,35 +828,41 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app.js">
+    <entry file="file://$PROJECT_DIR$/server.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="n#!!block;n#updateClient#0" expanded="false" />
             <element signature="n#!!block;n#createDatabase#0" expanded="false" />
+            <element signature="e#2268#2271#0" expanded="false" />
             <element signature="n#!!block;n#createCollection#0" expanded="false" />
             <element signature="n#!!block;n#insertDataToCollection#0" expanded="false" />
+            <element signature="n#!!block;n#insertManyDataToCollection#0" expanded="false" />
             <element signature="n#!!block;n#findDataReturnObjectFromCollection#0" expanded="false" />
             <element signature="n#!!block;n#findDataReturnArrayFromCollection#0" expanded="false" />
+            <element signature="n#!!block;n#deleteDataFromCollection#0" expanded="false" />
             <element signature="n#!!block;n#updateDataFromCollection#0" expanded="false" />
             <element signature="n#!!block;n#dropCollection#0" expanded="false" />
-            <element signature="e#6708#7134#0" expanded="false" />
-            <element signature="e#7148#7282#0" expanded="false" />
-            <element signature="n#!!block;n#doAfterGetListId#0" expanded="false" />
-            <element signature="e#7320#7390#0" expanded="false" />
-            <element signature="e#8816#8846#0" expanded="false" />
-            <element signature="n#!!block;n#testIsStart#0" expanded="false" />
-            <element signature="n#!!block;n#startChanel#0" expanded="false" />
-            <element signature="e#38600#39691#0" expanded="false" />
-            <element signature="e#39741#40373#0" expanded="false" />
-            <element signature="e#40377#40429#0" expanded="false" />
-            <element signature="e#47240#47422#0" expanded="false" />
-            <element signature="e#47464#49313#0" expanded="false" />
+            <element signature="e#7585#7955#0" expanded="false" />
+            <element signature="e#7969#8103#0" expanded="false" />
+            <element signature="n#!!block;n#getObjectChoose#0" expanded="false" />
+            <element signature="n#Queue#0" expanded="false" />
+            <element signature="n#CcuAndQueue#0" expanded="false" />
+            <element signature="e#31057#31074#0" expanded="false" />
+            <element signature="n#Payment#0" expanded="false" />
+            <element signature="e#34049#34065#0" expanded="false" />
+            <element signature="e#38344#39435#0" expanded="false" />
+            <element signature="e#40176#43250#0" expanded="false" />
+            <element signature="e#43310#44805#0" expanded="false" />
+            <element signature="e#44881#46392#0" expanded="false" />
+            <element signature="e#46430#46612#0" expanded="false" />
+            <element signature="e#46654#48503#0" expanded="false" />
             <element signature="n#!!block;n#getDayBefore#0" expanded="false" />
             <element signature="n#!!block;n#getDayAfter#0" expanded="false" />
-            <element signature="n#!!block;n#checkExistEndPoint#0" expanded="false" />
-            <element signature="e#51030#51060#0" expanded="false" />
+            <element signature="n#!!block;n#checkIsCorrectFormatEndPoint#0" expanded="false" />
+            <element signature="e#52108#52138#0" expanded="false" />
+            <element signature="e#52290#52943#0" expanded="false" />
+            <element signature="e#52997#53707#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -864,35 +881,41 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app.js">
+    <entry file="file://$PROJECT_DIR$/server.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="5" column="13" selection-start-line="5" selection-start-column="13" selection-end-line="5" selection-end-column="13" />
           <folding>
-            <element signature="n#!!block;n#updateClient#0" expanded="false" />
             <element signature="n#!!block;n#createDatabase#0" expanded="false" />
+            <element signature="e#2268#2271#0" expanded="false" />
             <element signature="n#!!block;n#createCollection#0" expanded="false" />
             <element signature="n#!!block;n#insertDataToCollection#0" expanded="false" />
+            <element signature="n#!!block;n#insertManyDataToCollection#0" expanded="false" />
             <element signature="n#!!block;n#findDataReturnObjectFromCollection#0" expanded="false" />
             <element signature="n#!!block;n#findDataReturnArrayFromCollection#0" expanded="false" />
+            <element signature="n#!!block;n#deleteDataFromCollection#0" expanded="false" />
             <element signature="n#!!block;n#updateDataFromCollection#0" expanded="false" />
             <element signature="n#!!block;n#dropCollection#0" expanded="false" />
-            <element signature="e#6708#7134#0" expanded="false" />
-            <element signature="e#7148#7282#0" expanded="false" />
-            <element signature="n#!!block;n#doAfterGetListId#0" expanded="false" />
-            <element signature="e#7320#7390#0" expanded="false" />
-            <element signature="e#8816#8846#0" expanded="false" />
-            <element signature="n#!!block;n#testIsStart#0" expanded="false" />
-            <element signature="n#!!block;n#startChanel#0" expanded="false" />
-            <element signature="e#38600#39691#0" expanded="false" />
-            <element signature="e#39741#40373#0" expanded="false" />
-            <element signature="e#40377#40429#0" expanded="false" />
-            <element signature="e#47240#47422#0" expanded="false" />
-            <element signature="e#47464#49313#0" expanded="false" />
+            <element signature="e#7585#7955#0" expanded="false" />
+            <element signature="e#7969#8103#0" expanded="false" />
+            <element signature="n#!!block;n#getObjectChoose#0" expanded="false" />
+            <element signature="n#Queue#0" expanded="false" />
+            <element signature="n#CcuAndQueue#0" expanded="false" />
+            <element signature="e#31057#31074#0" expanded="false" />
+            <element signature="n#Payment#0" expanded="false" />
+            <element signature="e#34049#34065#0" expanded="false" />
+            <element signature="e#38344#39435#0" expanded="false" />
+            <element signature="e#40176#43250#0" expanded="false" />
+            <element signature="e#43310#44805#0" expanded="false" />
+            <element signature="e#44881#46392#0" expanded="false" />
+            <element signature="e#46430#46612#0" expanded="false" />
+            <element signature="e#46654#48503#0" expanded="false" />
             <element signature="n#!!block;n#getDayBefore#0" expanded="false" />
             <element signature="n#!!block;n#getDayAfter#0" expanded="false" />
-            <element signature="n#!!block;n#checkExistEndPoint#0" expanded="false" />
-            <element signature="e#51030#51060#0" expanded="false" />
+            <element signature="n#!!block;n#checkIsCorrectFormatEndPoint#0" expanded="false" />
+            <element signature="e#52108#52138#0" expanded="false" />
+            <element signature="e#52290#52943#0" expanded="false" />
+            <element signature="e#52997#53707#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -967,13 +990,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/node_modules/node-cron/src/convert-expression/month-names-conversion.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="20" column="9" selection-start-line="20" selection-start-column="9" selection-end-line="20" selection-end-column="9" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/bin/www">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -985,13 +1001,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/ip.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="2" column="1" selection-start-line="2" selection-start-column="1" selection-end-line="2" selection-end-column="1" />
         </state>
       </provider>
     </entry>
@@ -1013,13 +1022,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="204" column="0" selection-start-line="204" selection-start-column="0" selection-end-line="204" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/node_modules/kareem/index.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="406" column="0" selection-start-line="406" selection-start-column="0" selection-end-line="406" selection-end-column="0" />
         </state>
       </provider>
     </entry>
@@ -1056,7 +1058,7 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="n#!!doc" expanded="true" />
+            <element signature="n#!!doc" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -1066,7 +1068,7 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="17" column="9" selection-start-line="17" selection-start-column="4" selection-end-line="17" selection-end-column="9" />
           <folding>
-            <element signature="n#!!doc" expanded="true" />
+            <element signature="n#!!doc" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -1098,14 +1100,14 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/node_modules/express-remove-route/LICENSE">
+      <provider editor-type-id="com.intellij.database.editor.CsvTableFileEditorProvider">
+        <state />
+      </provider>
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding />
         </state>
-      </provider>
-      <provider editor-type-id="com.intellij.database.editor.CsvTableFileEditorProvider">
-        <state />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/node_modules/express-remove-route/README.md">
@@ -1126,41 +1128,74 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/package.json">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-18.961538">
-          <caret line="29" column="25" selection-start-line="29" selection-start-column="25" selection-end-line="29" selection-end-column="25" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="17" column="10" selection-start-line="13" selection-start-column="5" selection-end-line="13" selection-end-column="10" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app.js">
+    <entry file="file://$PROJECT_DIR$/paymentType.csv">
+      <provider editor-type-id="com.intellij.database.editor.CsvTableFileEditorProvider">
+        <state />
+      </provider>
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.27351916">
-          <caret line="434" column="22" selection-start-line="434" selection-start-column="22" selection-end-line="434" selection-end-column="22" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ip.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-1.3076923">
+          <caret line="2" column="1" selection-start-line="2" selection-start-column="1" selection-end-line="2" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/node-Bot.iml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.81426203">
+          <caret line="326" column="29" selection-start-line="326" selection-start-column="29" selection-end-line="326" selection-end-column="29" />
           <folding>
-            <element signature="n#!!block;n#updateClient#0" expanded="false" />
             <element signature="n#!!block;n#createDatabase#0" expanded="false" />
+            <element signature="e#2268#2271#0" expanded="false" />
             <element signature="n#!!block;n#createCollection#0" expanded="false" />
             <element signature="n#!!block;n#insertDataToCollection#0" expanded="false" />
+            <element signature="n#!!block;n#insertManyDataToCollection#0" expanded="false" />
             <element signature="n#!!block;n#findDataReturnObjectFromCollection#0" expanded="false" />
             <element signature="n#!!block;n#findDataReturnArrayFromCollection#0" expanded="false" />
+            <element signature="n#!!block;n#deleteDataFromCollection#0" expanded="false" />
             <element signature="n#!!block;n#updateDataFromCollection#0" expanded="false" />
             <element signature="n#!!block;n#dropCollection#0" expanded="false" />
-            <element signature="e#6708#7134#0" expanded="false" />
-            <element signature="e#7148#7282#0" expanded="false" />
-            <element signature="n#!!block;n#doAfterGetListId#0" expanded="false" />
-            <element signature="e#7320#7390#0" expanded="false" />
-            <element signature="e#8816#8846#0" expanded="false" />
-            <element signature="n#!!block;n#testIsStart#0" expanded="false" />
-            <element signature="n#!!block;n#startChanel#0" expanded="false" />
-            <element signature="e#38600#39691#0" expanded="false" />
-            <element signature="e#39741#40373#0" expanded="false" />
-            <element signature="e#40377#40429#0" expanded="false" />
-            <element signature="e#47240#47422#0" expanded="false" />
-            <element signature="e#47464#49313#0" expanded="false" />
+            <element signature="e#7585#7955#0" expanded="false" />
+            <element signature="e#7969#8103#0" expanded="false" />
+            <element signature="n#!!block;n#getObjectChoose#0" expanded="false" />
+            <element signature="n#Queue#0" expanded="false" />
+            <element signature="n#CcuAndQueue#0" expanded="false" />
+            <element signature="e#31057#31074#0" expanded="false" />
+            <element signature="n#Payment#0" expanded="false" />
+            <element signature="e#34049#34065#0" expanded="false" />
+            <element signature="e#38344#39435#0" expanded="false" />
+            <element signature="e#40176#43250#0" expanded="false" />
+            <element signature="e#43310#44805#0" expanded="false" />
+            <element signature="e#44881#46392#0" expanded="false" />
+            <element signature="e#46430#46612#0" expanded="false" />
+            <element signature="e#46654#48503#0" expanded="false" />
             <element signature="n#!!block;n#getDayBefore#0" expanded="false" />
             <element signature="n#!!block;n#getDayAfter#0" expanded="false" />
-            <element signature="n#!!block;n#checkExistEndPoint#0" expanded="false" />
-            <element signature="e#51030#51060#0" expanded="false" />
+            <element signature="n#!!block;n#checkIsCorrectFormatEndPoint#0" expanded="false" />
+            <element signature="e#52108#52138#0" expanded="false" />
+            <element signature="e#52290#52943#0" expanded="false" />
+            <element signature="e#52997#53707#0" expanded="false" />
           </folding>
         </state>
       </provider>
