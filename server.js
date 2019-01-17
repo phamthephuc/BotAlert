@@ -18,24 +18,23 @@ const urlMongoServer = "mongodb://localhost:27017/";
 const nameDB = "mydb";
 //const urlMongoServer = "mongodb://root:tthvtcx2@ds042698.mlab.com:42698/mydb?authSource=mydb&w=1";
 //const nameDB = "";
-const defaultPeriod = 30 * 60 * 1000;
+const defaultPeriod = 2 * 60 * 1000;
 const minDuration = 30;
 const maxTimeAlert = 3;
 const defaultPercent = 0.3;
 const timesInCreaseLimit = 4;
-const serverPort = 9090;
+const serverPort = 9091;
 var typePayments = new HashMap();
 var csvPaymentTypePath = "./paymentType.csv";
-fs.createReadStream(csvPaymentTypePath).pipe(parse({delimiter : ':'})).on('data', function(csvRow) {
+
+fs.createReadStream(csvPaymentTypePath).pipe(parse({delimiter: ':'})).on('data', function (csvRow) {
     "use strict";
     var dataRow = csvRow.toString().split("\t");
     typePayments.set(dataRow[0], dataRow[1]);
-}).on('end', function() {
+}).on('end', function () {
     "use strict";
     console.log("End read CSV");
 });
-
-var allChanelPayment = ["IAP", "SMS_VIETEL", "SMS_MOBI"];
 
 function updateClient(postData, uri, chatId, callBack) {
     "use strict";
@@ -253,7 +252,6 @@ findDataReturnObjectFromCollection("GroupChatInfo", {}).then((result) => {
 }, (errMsg) => {
     listGroupChatId = [];
     insertDataToCollection("GroupChatInfo", {listGroupChatId: listGroupChatId});
-    doAfterGetListId();
 });
 
 findDataReturnArrayFromCollection("EndPointInfo", {}).then((result) => {
@@ -294,7 +292,7 @@ function addEndPoint(endPoint, chatId, type) {
     "use strict";
 
     var objectChoose = getObjectChoose(type, endPoint, chatId);
-    if(!objectChoose) {
+    if (!objectChoose) {
         console.log("Have no in type");
         return;
     } else {
@@ -406,7 +404,11 @@ class Ccu {
             index: 1715,
             dayOfWeek: 0,
             data: 1500
-        }, {index: 1716, dayOfWeek: 0, data: 1500}, {index: 1717, dayOfWeek: 0, data: 1}, {index: 1718, dayOfWeek: 0, data: 1500}];
+        }, {index: 1716, dayOfWeek: 0, data: 1500}, {index: 1717, dayOfWeek: 0, data: 1}, {
+            index: 1718,
+            dayOfWeek: 0,
+            data: 1500
+        }];
         var dataYesterday1 = [{index: 1710, dayOfWeek: 1, data: 1500}, {index: 1711, dayOfWeek: 1, data: 1}, {
             index: 1712,
             dayOfWeek: 1,
@@ -415,7 +417,11 @@ class Ccu {
             index: 1715,
             dayOfWeek: 1,
             data: 1500
-        }, {index: 1716, dayOfWeek: 1, data: 1500}, {index: 1717, dayOfWeek: 1, data: 1}, {index: 1718, dayOfWeek: 1, data: 1500}];
+        }, {index: 1716, dayOfWeek: 1, data: 1500}, {index: 1717, dayOfWeek: 1, data: 1}, {
+            index: 1718,
+            dayOfWeek: 1,
+            data: 1500
+        }];
         var dataYesterday2 = [{index: 1710, dayOfWeek: 2, data: 1500}, {index: 1711, dayOfWeek: 2, data: 1}, {
             index: 1712,
             dayOfWeek: 2,
@@ -424,7 +430,11 @@ class Ccu {
             index: 1715,
             dayOfWeek: 2,
             data: 1500
-        }, {index: 1716, dayOfWeek: 2, data: 1500}, {index: 1717, dayOfWeek: 2, data: 1}, {index: 1718, dayOfWeek: 2, data: 1500}];
+        }, {index: 1716, dayOfWeek: 2, data: 1500}, {index: 1717, dayOfWeek: 2, data: 1}, {
+            index: 1718,
+            dayOfWeek: 2,
+            data: 1500
+        }];
         var dataYesterday3 = [{index: 1710, dayOfWeek: 3, data: 1500}, {index: 1711, dayOfWeek: 3, data: 1}, {
             index: 1712,
             dayOfWeek: 3,
@@ -433,7 +443,11 @@ class Ccu {
             index: 1715,
             dayOfWeek: 3,
             data: 1500
-        }, {index: 1716, dayOfWeek: 3, data: 1500}, {index: 1717, dayOfWeek: 3, data: 1}, {index: 1718, dayOfWeek: 3, data: 1500}];
+        }, {index: 1716, dayOfWeek: 3, data: 1500}, {index: 1717, dayOfWeek: 3, data: 1}, {
+            index: 1718,
+            dayOfWeek: 3,
+            data: 1500
+        }];
         var dataYesterday4 = [{index: 1710, dayOfWeek: 4, data: 1500}, {index: 1711, dayOfWeek: 4, data: 1}, {
             index: 1712,
             dayOfWeek: 4,
@@ -442,7 +456,11 @@ class Ccu {
             index: 1715,
             dayOfWeek: 4,
             data: 1500
-        }, {index: 1716, dayOfWeek: 4, data: 1500}, {index: 1717, dayOfWeek: 4, data: 1}, {index: 1718, dayOfWeek: 4, data: 1500}];
+        }, {index: 1716, dayOfWeek: 4, data: 1500}, {index: 1717, dayOfWeek: 4, data: 1}, {
+            index: 1718,
+            dayOfWeek: 4,
+            data: 1500
+        }];
         var dataYesterday5 = [{index: 1710, dayOfWeek: 5, data: 1500}, {index: 1711, dayOfWeek: 5, data: 1}, {
             index: 1712,
             dayOfWeek: 5,
@@ -451,7 +469,11 @@ class Ccu {
             index: 1715,
             dayOfWeek: 5,
             data: 1500
-        }, {index: 1716, dayOfWeek: 5, data: 1500}, {index: 1717, dayOfWeek: 5, data: 1}, {index: 1718, dayOfWeek: 5, data: 1500}];
+        }, {index: 1716, dayOfWeek: 5, data: 1500}, {index: 1717, dayOfWeek: 5, data: 1}, {
+            index: 1718,
+            dayOfWeek: 5,
+            data: 1500
+        }];
         var dataYesterday6 = [{index: 1710, dayOfWeek: 6, data: 1500}, {index: 1711, dayOfWeek: 6, data: 1}, {
             index: 1712,
             dayOfWeek: 6,
@@ -460,7 +482,11 @@ class Ccu {
             index: 1715,
             dayOfWeek: 6,
             data: 1500
-        }, {index: 1716, dayOfWeek: 6, data: 1500}, {index: 1717, dayOfWeek: 6, data: 1}, {index: 1718, dayOfWeek: 6, data: 1500}];
+        }, {index: 1716, dayOfWeek: 6, data: 1500}, {index: 1717, dayOfWeek: 6, data: 1}, {
+            index: 1718,
+            dayOfWeek: 6,
+            data: 1500
+        }];
         var listData = [];
         listData.push(dataYesterday);
         listData.push(dataYesterday1);
@@ -490,7 +516,6 @@ class Ccu {
 
             index = parseInt((crrDate.getHours() * 3600 + crrDate.getMinutes() * 60 + crrDate.getSeconds()) / minDuration);
             dayOfWeek = crrDate.getDay();
-            console.log("day Of week: " + dayOfWeek);
         } catch (err1) {
             return false;
         }
@@ -506,7 +531,6 @@ class Ccu {
         if (!isWeek) {
             return "CCU HIỆN TẠI THẤP HƠN HÔM QUA : " + (oldValue - crrValue);
         }
-
         return "CCU HIỆN TẠI THẤP HƠN TRUNG BÌNH 7 NGÀY QUA : " + (oldValue - crrValue);
     }
 
@@ -544,8 +568,8 @@ class Ccu {
                                         var timesAlert = rs.timesAlert;
                                         findDataReturnObjectFromCollection(endPoint + "_MaxTimesAlertContinuous", {}).then((result) => {
                                             if (result) {
-                                                var maxTimeAlertOfURL = result.maxTimeAlert;
-                                                if (timesAlert < maxTimeAlertOfURL) {
+                                                var maxTimeAlertOfEndPoint = result.maxTimeAlert;
+                                                if (timesAlert < maxTimeAlertOfEndPoint) {
                                                     bot.sendMessage(chatId, this.stringAlert(data, averageData, true));
                                                     timesAlert += 1;
                                                     updateDataFromCollection(this.endPoint + "_TimeAlertContinuousWeek", {}, {timesAlert: timesAlert});
@@ -571,12 +595,20 @@ class Ccu {
                         }, doNothing);
                     }
 
-                    updateDataFromCollection(endPoint, {index: index, dayOfWeek: dayOfWeek}, {index: index, data: data, dayOfWeek: dayOfWeek});
+                    updateDataFromCollection(endPoint, {index: index, dayOfWeek: dayOfWeek}, {
+                        index: index,
+                        data: data,
+                        dayOfWeek: dayOfWeek
+                    });
                 }, doNothing);
 
             } else {
                 console.log("Data today in null");
-                insertDataToCollection(endPoint, {index: index, data: data, dayOfWeek: dayOfWeek}).then(doNothing, doNothing);
+                insertDataToCollection(endPoint, {
+                    index: index,
+                    data: data,
+                    dayOfWeek: dayOfWeek
+                }).then(doNothing, doNothing);
             }
         }, (errMsg) => {
             console.log("error in get data today");
@@ -596,8 +628,8 @@ class Ccu {
                                     var timesAlert = rs.timesAlert;
                                     findDataReturnObjectFromCollection(endPoint + "_MaxTimesAlertContinuous", {}).then((result) => {
                                         if (result) {
-                                            var maxTimeAlertOfURL = result.maxTimeAlert;
-                                            if (timesAlert < maxTimeAlertOfURL) {
+                                            var maxTimeAlertOfEndPoint = result.maxTimeAlert;
+                                            if (timesAlert < maxTimeAlertOfEndPoint) {
                                                 bot.sendMessage(chatId, this.stringAlert(data, dataYesterday, false));
                                                 timesAlert += 1;
                                                 updateDataFromCollection(this.endPoint + "_TimeAlertContinuousYesterday", {}, {timesAlert: timesAlert});
@@ -639,7 +671,7 @@ class Queue {
 
     checkConditionAlert(crrValue, oldValue) {
         "use strict";
-        return (crrValue > oldValue);
+        return (crrValue > oldValue || (crrValue == oldValue && crrValue > 1000));
     }
 
     //removeData() {
@@ -712,7 +744,10 @@ class Queue {
                             if (timesIncrease >= timesInCreaseLimit) {
                                 bot.sendMessage(chatId, this.stringAlert(type));
                             }
-                            updateDataFromCollection(endPoint, {type: type}, {type: type, timesIncrease: timesIncrease + 1});
+                            updateDataFromCollection(endPoint, {type: type}, {
+                                type: type,
+                                timesIncrease: timesIncrease + 1
+                            });
                         } else {
                             insertDataToCollection(endPoint, {type: type, timesIncrease: 1}).then(doNothing, doNothing);
                         }
@@ -771,8 +806,8 @@ class CcuAndQueue {
     doCheckAlertWithEndPoint(index, data, endPoint) {
         "use strict";
         findDataReturnObjectFromCollection(endPoint + "_Status", {}).then((result) => {
-            if(!result || !result.isActive) {
-                console.log(endPoint+ " ĐANG TRONG TRẠNG THÁI UNACTIVE");
+            if (!result || !result.isActive) {
+                console.log(endPoint + " ĐANG TRONG TRẠNG THÁI UNACTIVE");
             } else {
                 var check1;
                 if (data && data.ccu != undefined) {
@@ -879,7 +914,6 @@ class Payment {
     //    //dropCollection(this.endPoint + "_Period");
     //}
 
-
     initData(endPoint) {
         "use strict";
 
@@ -887,7 +921,7 @@ class Payment {
         var functionTimeOut = function () {
 
             findDataReturnObjectFromCollection(endPoint + "_Status", {}).then((result) => {
-                if(!result || !result.isActive) {
+                if (!result || !result.isActive) {
                     console.log(endPoint + " ĐANG TRONG TRẠNG THÁI UNACTIVE");
                 } else {
                     findDataReturnArrayFromCollection(endPoint, {}).then((rs) => {
@@ -895,14 +929,9 @@ class Payment {
                             rs.forEach((item) => {
                                 var numPayment = item.numPayment;
                                 if (numPayment <= 0) {
-                                    bot.sendMessage(seft.chatId, "ĐÃ QUÁ LÂU MÀ CHƯA THẤY CÓ PAYMENT Ở CHANEL " + item.chanel);
+                                    bot.sendMessage(seft.chatId, "ĐÃ QUÁ LÂU MÀ CHƯA THẤY CÓ PAYMENT Ở CHANEL " + typePayments.get(item.chanel));
                                 }
-
-                                updateDataFromCollection(endPoint, {chanel : item.chanel}, {numPayment: 0});
-                            })
-                        } else {
-                            allChanelPayment.forEach((item) => {
-                                insertDataToCollection(endPoint, {chanel: item, numPayment: 0}).then(doNothing, doNothing);
+                                updateDataFromCollection(endPoint, {chanel: item.chanel}, {numPayment: 0});
                             })
                         }
                     }, doNothing);
@@ -913,7 +942,6 @@ class Payment {
                 var timeOut = result.period;
                 setTimeout(functionTimeOut, timeOut);
             }, doNothing);
-
         };
 
         findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rs) => {
@@ -929,25 +957,19 @@ class Payment {
         }, doNothing);
 
         findDataReturnArrayFromCollection(endPoint, {}).then((rsMsg) => {
-            if (rsMsg && rsMsg.length > 0) {
-                findDataReturnObjectFromCollection(endPoint + "_Period", {}).then((result) => {
-                    if (result) {
-                        var timeOut = result.period;
-                        setTimeout(functionTimeOut, timeOut);
-                    } else {
-                        insertDataToCollection(endPoint + "_Period", {period: defaultPeriod}).then((ok1) => {
-                            setTimeout(functionTimeOut, defaultPeriod);
-                        }, doNothing);
-                    }
-                }, doNothing);
-            } else {
-                allChanelPayment.forEach((item) => {
-                    insertDataToCollection(endPoint, {chanel: item, numPayment: 0}).then(doNothing, doNothing);
-                });
-                insertDataToCollection(endPoint + "_Period", {period: defaultPeriod}).then((ok1) => {
-                    setTimeout(functionTimeOut, defaultPeriod);
-                }, doNothing);
+            if (!rsMsg || rsMsg.length == 0) {
+                bot.sendMessage(seft.chatId, "HIỆN TẠI CHƯA CÓ LOẠI PAYMENT NÀO ĐƯỢC CHỌN ĐỂ ALERT, VUI LÒNG THÊM!");
             }
+            findDataReturnObjectFromCollection(endPoint + "_Period", {}).then((result) => {
+                if (result) {
+                    var timeOut = result.period;
+                    setTimeout(functionTimeOut, timeOut);
+                } else {
+                    insertDataToCollection(endPoint + "_Period", {period: defaultPeriod}).then((ok1) => {
+                        setTimeout(functionTimeOut, defaultPeriod);
+                    }, doNothing);
+                }
+            }, doNothing);
         }, doNothing);
 
     }
@@ -1007,7 +1029,7 @@ bot.onText(/\/changePasscode (.+)/, (msg, match) => {
                 }
             }, doNothing);
         } else {
-            bot.sendMessage(chatId, "CHƯA CÓ IP");
+            bot.sendMessage(chatId, "CHƯA CÓ IP! CÓ THỂ THÊM IP SERVER BẰNG LỆNH '/addIp {ip}'");
         }
     }, doNothing);
 
@@ -1017,7 +1039,7 @@ bot.onText(/\/changeIp (.+)/, (msg, match) => {
     const chatId = msg.chat.id;
     var newIp = match[1];
     newIp = getIpWithNormalFormat(newIp);
-    if(newIp == null) {
+    if (newIp == null) {
         bot.sendMessage(chatId, "IP BẠN NHẬP KHÔNG ĐÚNG ĐỊNH DẠNG");
         return;
     }
@@ -1025,9 +1047,9 @@ bot.onText(/\/changeIp (.+)/, (msg, match) => {
     findDataReturnObjectFromCollection(chatId + "_Ip", {}).then((rs2) => {
         if (rs2) {
             var ip = rs2.ip;
-            updateDataFromCollection(chatId + "_Ip", {ip : ip} ,{ip : newIp});
+            updateDataFromCollection(chatId + "_Ip", {ip: ip}, {ip: newIp});
         } else {
-            insertDataToCollection(chatId + "_Ip", {ip : newIp}).then(doNothing, doNothing);
+            insertDataToCollection(chatId + "_Ip", {ip: newIp}).then(doNothing, doNothing);
         }
         bot.sendMessage(chatId, "THAY ĐỔI IP SERVER GAME THÀNH CÔNG");
     }, doNothing);
@@ -1050,6 +1072,7 @@ bot.onText(/\/changePeriod (.+) (.+)/, (msg, match) => {
         bot.sendMessage(chatId, "PERIOD phải là số chia hết cho " + minDuration + "(s)");
         return;
     }
+
     var endPoint = match[1];
 
     findDataReturnObjectFromCollection("EndPointInfo", {groupId: chatId, endPoint: endPoint}).then((rsMessage) => {
@@ -1092,11 +1115,11 @@ bot.onText(/\/changePeriod (.+) (.+)/, (msg, match) => {
                     }
 
                 } else {
-                    bot.sendMessage(chatId, "URL NÀY CHƯA ĐƯỢC KÍCH HOẠT");
+                    bot.sendMessage(chatId, "ENDPOINT NÀY CHƯA ĐƯỢC KÍCH HOẠT");
                 }
             }, doNothing);
         } else {
-            bot.sendMessage(chatId, "URL NÀY KHÔNG CÓ TRONG CHANEL CỦA BẠN");
+            bot.sendMessage(chatId, "ENDPOINT NÀY KHÔNG CÓ TRONG CHANEL CỦA BẠN");
         }
     }, (errMessage) => {
         "use strict";
@@ -1134,16 +1157,16 @@ bot.onText(/\/changePercent (.+) (.+)/, (msg, match) => {
                             bot.sendMessage(chatId, "THAY ĐỔI THÀNH CÔNG!");
                             break;
                         default :
-                            bot.sendMessage(chatId, "URL BẠN NHẬP KHÔNG ÁP DỤNG CHO CCU!");
+                            bot.sendMessage(chatId, "ENDPOINT BẠN NHẬP KHÔNG ÁP DỤNG CHO CCU!");
                             break;
                     }
 
                 } else {
-                    bot.sendMessage(chatId, "URL NÀY CHƯA ĐƯỢC KÍCH HOẠT");
+                    bot.sendMessage(chatId, "ENDPOINT NÀY CHƯA ĐƯỢC KÍCH HOẠT");
                 }
             }, doNothing);
         } else {
-            bot.sendMessage(chatId, "URL NÀY KHÔNG CÓ TRONG CHANEL CỦA BẠN");
+            bot.sendMessage(chatId, "ENDPOINT NÀY KHÔNG CÓ TRONG CHANEL CỦA BẠN");
         }
     }, doNothing);
 });
@@ -1178,16 +1201,16 @@ bot.onText(/\/changeMaxTimesContiniousAlert (.+) (.+)/, (msg, match) => {
                             bot.sendMessage(chatId, "THAY ĐỔI THÀNH CÔNG!");
                             break;
                         default :
-                            bot.sendMessage(chatId, "URL BẠN NHẬP KHÔNG ÁP DỤNG CHO CCU!");
+                            bot.sendMessage(chatId, "ENDPOINT BẠN NHẬP KHÔNG ÁP DỤNG CHO CCU!");
                             break;
                     }
 
                 } else {
-                    bot.sendMessage(chatId, "URL NÀY CHƯA ĐƯỢC KÍCH HOẠT");
+                    bot.sendMessage(chatId, "ENDPOINT NÀY CHƯA ĐƯỢC KÍCH HOẠT");
                 }
             }, doNothing);
         } else {
-            bot.sendMessage(chatId, "URL NÀY KHÔNG CÓ TRONG CHANEL CỦA BẠN");
+            bot.sendMessage(chatId, "ENDPOINT NÀY KHÔNG CÓ TRONG CHANEL CỦA BẠN");
         }
     }, doNothing);
 });
@@ -1207,7 +1230,7 @@ bot.onText(/\/listEndPoint/, (msg) => {
         if (rs.length > 0) {
             rs.forEach((item) => {
                 var result = "";
-                var endPoint = item.data;
+                var endPoint = item.endPoint;
                 result += endPoint;
                 findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rst) => {
                     if (rst) {
@@ -1236,7 +1259,7 @@ bot.onText(/\/listEndPoint/, (msg) => {
                 });
             });
         } else {
-            bot.sendMessage(chatId, "BẠN CHƯA CÓ URL NÀO");
+            bot.sendMessage(chatId, "BẠN CHƯA CÓ ENDPOINT NÀO");
         }
     }, (err) => {
         "use strict";
@@ -1264,7 +1287,7 @@ bot.onText(/\/addEndPoint (.+)/, (msg, match) => {
     const endPoint = match[1];
 
     if (!checkIsCorrectFormatEndPoint(endPoint)) {
-        bot.sendMessage(chatId, "DINH DANG URL CHUA DUNG!");
+        bot.sendMessage(chatId, "DINH DANG ENDPOINT CHUA DUNG!");
         return;
     }
 
@@ -1273,7 +1296,7 @@ bot.onText(/\/addEndPoint (.+)/, (msg, match) => {
         return;
     }
     if (checkExistEndPoint(endPoint)) {
-        bot.sendMessage(chatId, "URL NAY DA TON TAI!");
+        bot.sendMessage(chatId, "ENDPOINT NAY DA TON TAI!");
         return;
     }
 
@@ -1314,27 +1337,27 @@ bot.onText(/\/addChanelPayment (.+) (.+)/, (msg, match) => {
         return;
     }
 
-    if(!isNumber(typePayment)) {
+    if (!isNumber(typePayment)) {
         bot.sendMessage(chatId, "ID TYPE PAYMENT PHẢI LÀ 1 SỐ");
         return;
     }
+
     findDataReturnObjectFromCollection("EndPointInfo", {groupId: chatId, endPoint: endPoint}).then((result) => {
         "use strict";
-        if(!result) {
+        if (!result) {
             bot.sendMessage(chatId, "ENDPOINT NÀY KHÔNG TỒN TẠI TRÊN CHANEL CỦA BẠN");
         } else {
-            if(typePayments.has(typePayment)) {
+            if (typePayments.has(typePayment)) {
                 findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rs) => {
-                    if(rs && rs.type && rs.type == "PAYMENT") {
-                        findDataReturnObjectFromCollection(endPoint, {chanel : typePayments.get(typePayment)})
+                    if (rs && rs.type && rs.type == "PAYMENT") {
+                        findDataReturnObjectFromCollection(endPoint, {chanel: typePayment})
                             .then((rs1) => {
-                                if(!rs1) {
-                                    insertDataToCollection(endPoint, {chanel : typePayments.get(typePayment), numPayment : 0}).then(doNothing, doNothing);
-                                    bot.sendMessage(chatId, "Thêm Chanel Payment Thành công");
+                                if (!rs1) {
+                                    doAddIdPaymentInServerGame(chatId, typePayment, endPoint);
                                 } else {
                                     bot.sendMessage(chatId, "CHANEL PAYMENT ĐÃ TỒN TẠI");
                                 }
-                        }, doNothing);
+                            }, doNothing);
                     } else {
                         bot.sendMessage(chatId, "ENDPOINT CỦA BẠN KHÔNG DÀNH CHO PAYMENT");
                     }
@@ -1346,6 +1369,26 @@ bot.onText(/\/addChanelPayment (.+) (.+)/, (msg, match) => {
     }, doNothing);
 });
 
+function doAddIdPaymentInServerGame(chatId, typePayment, endPoint) {
+    "use strict";
+    findDataReturnObjectFromCollection(chatId + "_Ip", {}).then((rs2) => {
+        if (rs2) {
+            var ip = rs2.ip;
+            updateClient({
+                paymentType: typePayment
+            }, ip + ":" + serverPort + "/addPaymentType", chatId, (response) => {
+                insertDataToCollection(endPoint, {
+                    chanel: typePayment,
+                    numPayment: 0
+                }).then((rs) => {
+                    bot.sendMessage(chatId, "Thêm Chanel Payment Thành công");
+                }, doNothing);
+            });
+        } else {
+            bot.sendMessage(chatId, "CHƯA CÓ IP! CÓ THỂ THÊM IP SERVER BẰNG LỆNH '/addIp {ip}'");
+        }
+    }, doNothing);
+}
 
 function checkIsCorrectFormatEndPoint(endPoint) {
     "use strict";
@@ -1353,6 +1396,27 @@ function checkIsCorrectFormatEndPoint(endPoint) {
     return !endPoint.match(regex);
 }
 
+bot.onText(/\/cheatPayment (.+)/, (msg, match) => {
+    "use strict";
+    const chatId = msg.chat.id;
+    var paymentType = match[1];
+    findDataReturnObjectFromCollection(chatId + "_Ip", {}).then((rs) => {
+        if(!rs) {
+            bot.sendMessage(chatId, "CHƯA TỒN TẠI IP");
+        } else {
+            var ip = rs.ip;
+            findDataReturnObjectFromCollection(chatId + "_Passcode", {}).then((result) => {
+                if(!result) {
+                    bot.sendMessage(chatId, "CHƯA TỒN TẠI PASSCODE");
+                } else {
+                    updateClient({passcode : result.passcode, chanel : paymentType}, ip + ":" + serverPort + "/addCoin", chatId, (response) => {
+                        bot.sendMessage(chatId, "CHEAT THÀNH CÔNG!");
+                    });
+                }
+            }, doNothing);
+        }
+    }, doNothing);
+})
 //bot.on('sticker', (msg) => {
 //    "use strict";
 //    const chatId = msg.chat.id;
@@ -1365,10 +1429,10 @@ bot.onText(/\/cleanDataCcu (.+)/, (msg, match) => {
     const chatId = msg.chat.id;
     var endPoint = match[1];
     findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rs) => {
-        if(!rs) {
+        if (!rs) {
             bot.sendMessage(chatId, "ENDPOINT BẠN VỪA NHẬP ĐANG KHÔNG ĐƯỢC SỬ DỤNG");
         } else {
-            if(rs.type == "CCU_AND_QUEUE") {
+            if (rs.type == "CCU_AND_QUEUE") {
                 var objectChoose = new Ccu(endPoint, chatId);
                 objectChoose.removeData();
                 bot.sendMessage(chatId, "Clean Dữ liệu CCU Thành công");
@@ -1384,10 +1448,10 @@ bot.onText(/\/changeStatus (.+)/, (msg, match) => {
     const chatId = msg.chat.id;
     var endPoint = match[1];
     findDataReturnObjectFromCollection(endPoint + "_Status", {}).then((r) => {
-        if(r) {
+        if (r) {
             var isActive = r.isActive;
-            updateDataFromCollection(endPoint + "_Status", {isActive : isActive}, {isActive : !isActive});
-            if(!isActive) {
+            updateDataFromCollection(endPoint + "_Status", {isActive: isActive}, {isActive: !isActive});
+            if (!isActive) {
                 bot.sendMessage(chatId, "Active EndPoint Thành công");
             } else {
                 bot.sendMessage(chatId, "Inactive EndPoint Thành công");
@@ -1418,15 +1482,15 @@ bot.on('callback_query', query => {
             findDataReturnObjectFromCollection("EndPointInfo", {endPoint: endPoint}).then((rs) => {
                 if (rs) {
                     var endPoint = rs.endPoint;
+                    bot.sendMessage(chatId, "Đã Thêm EndPoint Thành Công!");
                     addEndPoint(endPoint, chatId, type);
-                    bot.sendMessage(chatId, "ĐÃ SẴN SÀNG!");
                 }
 
             }, (err) => {
-                bot.sendMessage(chatId, "URL NÀY ĐÃ KÍCH HOẠT! VUI LÒNG CHỌN URL KHÁC");
+                bot.sendMessage(chatId, "ENDPOINT NÀY ĐÃ KÍCH HOẠT! VUI LÒNG CHỌN ENDPOINT KHÁC");
             });
         } else {
-            bot.sendMessage(chatId, "URL NÀY ĐÃ KÍCH HOẠT! VUI LÒNG CHỌN URL KHÁC");
+            bot.sendMessage(chatId, "ENDPOINT NÀY ĐÃ KÍCH HOẠT! VUI LÒNG CHỌN ENDPOINT KHÁC");
         }
     }, doNothing);
 
