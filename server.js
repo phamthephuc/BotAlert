@@ -16,14 +16,14 @@ const HashMap = require("hashmap");
 const mongoClient = require("mongodb").MongoClient;
 const urlMongoServer = "mongodb://localhost:27017/";
 const nameDB = "mydb";
-//const urlMongoServer = "mongodb://root:tthvtcx2@ds042698.mlab.com:42698/mydb?authSource=mydb&w=1";
-//const nameDB = "";
 const defaultPeriod = 2 * 60 * 1000;
 const minDuration = 30;
 const maxTimeAlert = 3;
 const defaultPercent = 0.3;
 const timesInCreaseLimit = 4;
 const serverPort = 9091;
+const maxPermissionQueueSize = 1000;
+
 var typePayments = new HashMap();
 var csvPaymentTypePath = "./paymentType.csv";
 
@@ -294,7 +294,6 @@ function addEndPoint(endPoint, chatId, type) {
     var objectChoose = getObjectChoose(type, endPoint, chatId);
     if (!objectChoose) {
         console.log("Have no in type");
-        return;
     } else {
         objectChoose.initData(endPoint);
 
@@ -309,12 +308,7 @@ function addEndPoint(endPoint, chatId, type) {
 
             var passcode = req.body.passcode;
 
-            //if(!hashString || !ipFormat) {
-            //    res.send(false);
-            //    return;
-            //}
-
-            if (!passcode) {
+            if (!passcode && !ipFormat) {
                 res.send(false);
                 return;
             }
@@ -369,11 +363,11 @@ class Ccu {
             }
         }, doNothing);
 
-        //findDataReturnObjectFromCollection(endPoint + "_TYPE", {}).then((result) => {
-        //    if(!result) {
-        //        insertDataToCollection(endPoint + "_TYPE", {type : "CCU"}).then((m) => {}, (e) => {});
-        //    }
-        //}, (errorMsg) => {});
+        findDataReturnObjectFromCollection(endPoint + "_TYPE", {}).then((result) => {
+            if(!result) {
+                insertDataToCollection(endPoint + "_TYPE", {type : "CCU"}).then(doNothing, doNothing);
+            }
+        }, doNothing);
 
         findDataReturnObjectFromCollection(endPoint + "_Percent", {}).then((result) => {
             if (!result) {
@@ -671,7 +665,7 @@ class Queue {
 
     checkConditionAlert(crrValue, oldValue) {
         "use strict";
-        return (crrValue > oldValue || (crrValue == oldValue && crrValue > 1000));
+        return (crrValue > oldValue || (crrValue == oldValue && crrValue > maxPermissionQueueSize));
     }
 
     //removeData() {
@@ -700,11 +694,11 @@ class Queue {
                 insertDataToCollection(endPoint, {type: "ExtensionQueue", timesIncrease: 0}).then(doNothing, doNothing);
             }
         }, doNothing);
-        //findDataReturnObjectFromCollection(endPoint + "_TYPE", {}).then((rs) => {
-        //    if(!rs) {
-        //        insertDataToCollection(endPoint + "_TYPE", {type : "QUEUE"}).then((m) => {}, (e) => {});
-        //    }
-        //}, (e) => {});
+        findDataReturnObjectFromCollection(endPoint + "_TYPE", {}).then((rs) => {
+            if(!rs) {
+                insertDataToCollection(endPoint + "_TYPE", {type : "QUEUE"}).then(doNothing, doNothing);
+            }
+        }, doNothing);
 
     }
 
@@ -782,11 +776,12 @@ class CcuAndQueue {
 
     initData(endPoint) {
         "use strict";
-        this.ccu.initData(endPoint);
-        this.queue.initData(endPoint);
         findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((result) => {
             if (!result) {
-                insertDataToCollection(endPoint + "_Type", {type: "CCU_AND_QUEUE"}).then(doNothing, doNothing);
+                insertDataToCollection(endPoint + "_Type", {type: "CCU_AND_QUEUE"}).then((success) => {
+                    this.ccu.initData(endPoint);
+                    this.queue.initData(endPoint);
+                }, doNothing);
             }
         }, doNothing);
 
@@ -1121,10 +1116,7 @@ bot.onText(/\/changePeriod (.+) (.+)/, (msg, match) => {
         } else {
             bot.sendMessage(chatId, "ENDPOINT NÀY KHÔNG CÓ TRONG CHANEL CỦA BẠN");
         }
-    }, (errMessage) => {
-        "use strict";
-
-    });
+    }, doNothing);
 });
 
 bot.onText(/\/changePercent (.+) (.+)/, (msg, match) => {
@@ -1337,10 +1329,10 @@ bot.onText(/\/addChanelPayment (.+) (.+)/, (msg, match) => {
         return;
     }
 
-    if (!isNumber(typePayment)) {
-        bot.sendMessage(chatId, "ID TYPE PAYMENT PHẢI LÀ 1 SỐ");
-        return;
-    }
+    //if (!isNumber(typePayment)) {
+    //    bot.sendMessage(chatId, "ID TYPE PAYMENT PHẢI LÀ 1 SỐ");
+    //    return;
+    //}
 
     findDataReturnObjectFromCollection("EndPointInfo", {groupId: chatId, endPoint: endPoint}).then((result) => {
         "use strict";
@@ -1368,6 +1360,70 @@ bot.onText(/\/addChanelPayment (.+) (.+)/, (msg, match) => {
         }
     }, doNothing);
 });
+
+bot.onText(/\/removeChanelPayment (.+) (.+)/, (msg, match) => {
+    const chatId = msg.chat.id;
+    const endPoint = match[1];
+    const typePayment = match[2];
+    console.log("come here");
+
+    if (!checkIsCorrectFormatEndPoint(endPoint)) {
+        bot.sendMessage(chatId, "ĐỊNH DẠNG ENDPOINT KHÔNG ĐÚNG!");
+        return;
+    }
+
+    //if (!isNumber(typePayment)) {
+    //    bot.sendMessage(chatId, "ID TYPE PAYMENT PHẢI LÀ 1 SỐ");
+    //    return;
+    //}
+
+    findDataReturnObjectFromCollection("EndPointInfo", {groupId: chatId, endPoint: endPoint}).then((result) => {
+        "use strict";
+        if (!result) {
+            bot.sendMessage(chatId, "ENDPOINT NÀY KHÔNG TỒN TẠI TRÊN CHANEL CỦA BẠN");
+        } else {
+            if (typePayments.has(typePayment)) {
+                findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rs) => {
+                    if (rs && rs.type && rs.type == "PAYMENT") {
+                        findDataReturnObjectFromCollection(endPoint, {chanel: typePayment})
+                            .then((rs1) => {
+                                if (rs1) {
+                                    doRemoveIdPaymentInServerGame(chatId, typePayment, endPoint);
+                                } else {
+                                    bot.sendMessage(chatId, "CHANEL PAYMENT CHƯA TỒN TẠI");
+                                }
+                            }, doNothing);
+                    } else {
+                        bot.sendMessage(chatId, "ENDPOINT CỦA BẠN KHÔNG DÀNH CHO PAYMENT");
+                    }
+                }, doNothing);
+            } else {
+                bot.sendMessage(chatId, "LOẠI PAYMENT NÀY CHƯA ĐƯỢC HỔ TRỢ");
+            }
+        }
+    }, doNothing);
+});
+
+function doRemoveIdPaymentInServerGame(chatId, typePayment, endPoint) {
+    "use strict";
+    findDataReturnObjectFromCollection(chatId + "_Ip", {}).then((rs2) => {
+        if (rs2) {
+            var ip = rs2.ip;
+            updateClient({
+                paymentType: typePayment
+            }, ip + ":" + serverPort + "/removePaymentType", chatId, (response) => {
+                insertDataToCollection(endPoint, {
+                    chanel: typePayment,
+                    numPayment: 0
+                }).then((rs) => {
+                    bot.sendMessage(chatId, "Remove Chanel Payment Thành công");
+                }, doNothing);
+            });
+        } else {
+            bot.sendMessage(chatId, "CHƯA CÓ IP! CÓ THỂ THÊM IP SERVER BẰNG LỆNH '/addIp {ip}'");
+        }
+    }, doNothing);
+}
 
 function doAddIdPaymentInServerGame(chatId, typePayment, endPoint) {
     "use strict";
@@ -1416,13 +1472,8 @@ bot.onText(/\/cheatPayment (.+)/, (msg, match) => {
             }, doNothing);
         }
     }, doNothing);
-})
-//bot.on('sticker', (msg) => {
-//    "use strict";
-//    const chatId = msg.chat.id;
-//    bot.sendMessage(chatId, "👍");
-//
-//});
+});
+
 
 bot.onText(/\/cleanDataCcu (.+)/, (msg, match) => {
     "use strict";
