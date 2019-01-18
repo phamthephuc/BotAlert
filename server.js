@@ -24,6 +24,7 @@ const timesInCreaseLimit = 4;
 const serverPort = 9091;
 const maxPermissionQueueSize = 1000;
 
+//test2
 var typePayments = new HashMap();
 var csvPaymentTypePath = "./paymentType.csv";
 
