@@ -1495,8 +1495,6 @@ bot.onText(/\/cleanDataCcu (.+)/, (msg, match) => {
     }, doNothing);
 });
 
-//testBranch
-
 bot.onText(/\/changeStatus (.+)/, (msg, match) => {
     "use strict";
     const chatId = msg.chat.id;
