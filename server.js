@@ -5,7 +5,8 @@ const request = require("request");
 const md5 = require("md5");
 const fs = require("fs")
 const parse = require("csv-parse");
-const token = '666177464:AAG8mro3tNOX_6LbFTNRtwX35Y1QYOdDbC0';
+//const token = '666177464:AAG8mro3tNOX_6LbFTNRtwX35Y1QYOdDbC0';
+const token = '674200182:AAGdEA3ie3ZGbz2-UYsik7iVGL_bt2BusJw';
 const bot = new TelegramBot(token, {polling: true});
 const port = 3000;
 const app = express();
@@ -16,15 +17,16 @@ const HashMap = require("hashmap");
 const mongoClient = require("mongodb").MongoClient;
 const urlMongoServer = "mongodb://localhost:27017/";
 const nameDB = "mydb";
-const defaultPeriod = 2 * 60 * 1000;
+const defaultPeriod = 30 * 1000;
 const minDuration = 30;
 const maxTimeAlert = 3;
 const defaultPercent = 0.3;
 const timesInCreaseLimit = 4;
-const serverPort = 9091;
+const serverPort = 10091;
 const maxPermissionQueueSize = 1000;
 
-//test2
+var hashPaymentEndPoint = new HashMap();
+
 var typePayments = new HashMap();
 var csvPaymentTypePath = "./paymentType.csv";
 
@@ -298,6 +300,9 @@ function addEndPoint(endPoint, chatId, type) {
     } else {
         objectChoose.initData(endPoint);
 
+        if(type == "PAYMENT") {
+            hashPaymentEndPoint.set(endPoint, objectChoose);
+        }
         console.log("Add new endPoint : " + endPoint + "|" + type);
 
         app.post('/' + endPoint, (req, res) => {
@@ -901,6 +906,9 @@ class Payment {
         "use strict";
         this.endPoint = endPoint;
         this.chatId = chatId;
+        this.seflInterval = null;
+        this.lastTimeCheck = null;
+        this.functionInterval = null;
     }
 
     //removeData() {
@@ -910,12 +918,16 @@ class Payment {
     //    //dropCollection(this.endPoint + "_Period");
     //}
 
+    getCrrTimeInMilis() {
+        "use strict";
+        return (new Date().getTime());
+    }
+
     initData(endPoint) {
         "use strict";
-
         var seft = this;
-        var functionTimeOut = function () {
-
+        seft.lastTimeCheck = seft.getCrrTimeInMilis();
+        this.functionInterval = function () {
             findDataReturnObjectFromCollection(endPoint + "_Status", {}).then((result) => {
                 if (!result || !result.isActive) {
                     console.log(endPoint + " ĐANG TRONG TRẠNG THÁI UNACTIVE");
@@ -931,14 +943,20 @@ class Payment {
                             })
                         }
                     }, doNothing);
+                    seft.lastTimeCheck = seft.getCrrTimeInMilis();
+                    console.log("LAST TIME : " + seft.lastTimeCheck);
                 }
             }, doNothing);
-
-            findDataReturnObjectFromCollection(endPoint + "_Period", {}).then((result) => {
-                var timeOut = result.period;
-                setTimeout(functionTimeOut, timeOut);
-            }, doNothing);
         };
+
+
+        //findDataReturnObjectFromCollection(endPoint + "_LastTimeCheck", {}).then((rs) => {
+        //    if (!rs) {
+        //        insertDataToCollection(endPoint + "_LastTimeCheck", {time: getCrrTimeInMilis()}).then(doNothing, doNothing);
+        //    } else {
+        //        updateDataFromCollection(endPoint + "_LastTimeCheck",{}, {time: getCrrTimeInMilis()});
+        //    }
+        //}, doNothing);
 
         findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rs) => {
             if (!rs) {
@@ -959,15 +977,33 @@ class Payment {
             findDataReturnObjectFromCollection(endPoint + "_Period", {}).then((result) => {
                 if (result) {
                     var timeOut = result.period;
-                    setTimeout(functionTimeOut, timeOut);
+                    seft.seflInterval = setInterval(seft.functionInterval, timeOut, timeOut);
                 } else {
                     insertDataToCollection(endPoint + "_Period", {period: defaultPeriod}).then((ok1) => {
-                        setTimeout(functionTimeOut, defaultPeriod);
+                        seft.seflInterval = setInterval(seft.functionInterval, defaultPeriod, defaultPeriod);
                     }, doNothing);
                 }
             }, doNothing);
         }, doNothing);
 
+    }
+
+    doChangePeriod(newDuration) {
+        "use strict";
+        var seft = this;
+        clearInterval(seft.seflInterval);
+        findDataReturnObjectFromCollection(seft.endPoint + "_Period", {}).then((result) => {
+            if(result && result.period) {
+                var period = result.period;
+                var ownTime = period - (seft.getCrrTimeInMilis() - seft.lastTimeCheck);
+                var functionTimeOut = function() {
+                    seft.functionInterval();
+                    updateDataFromCollection(seft + "_Period", {}, {period : newDuration});
+                    setInterval(seft.functionInterval, newDuration, newDuration);
+                };
+                setTimeout(functionTimeOut, ownTime);
+            }
+        },doNothing());
     }
 
     doCheckAlert(index, data) {
@@ -1006,12 +1042,14 @@ bot.onText(/\/changePasscode (.+)/, (msg, match) => {
     var newPasscode = match[1];
     newPasscode = md5(newPasscode);
 
+    console.log("COME HERE");
     findDataReturnObjectFromCollection(chatId + "_Ip", {}).then((rs2) => {
         if (rs2) {
             var ip = rs2.ip;
             findDataReturnObjectFromCollection(chatId + "_Passcode", {}).then((rs3) => {
                 if (rs3) {
                     var passcode = rs3.passcode;
+                    console.log("COME HERE 1");
                     updateClient({
                         passcode: passcode,
                         newPasscode: newPasscode
@@ -1088,8 +1126,9 @@ bot.onText(/\/changePeriod (.+) (.+)/, (msg, match) => {
                                             updateClient({
                                                 passcode: passcode,
                                                 duration: newValueDuration
-                                            }, ip + ":" + serverPort + "/duration", chatId, doNothing);
-                                            bot.sendMessage(chatId, "Cập nhật Period Thành công")
+                                            }, ip + ":" + serverPort + "/duration", chatId, (response) => {
+                                                bot.sendMessage(chatId, "Cập nhật Period Thành công");
+                                            });
                                         } else {
                                             bot.sendMessage(chatId, "CHƯA NHẬN DIỆN ĐƯỢC SERVER");
                                         }
@@ -1103,7 +1142,8 @@ bot.onText(/\/changePeriod (.+) (.+)/, (msg, match) => {
                             findDataReturnObjectFromCollection(endPoint + "_Period", {}).then((rs) => {
                                 "use strict";
                                 if (rs) {
-                                    updateDataFromCollection(endPoint + "_Period", {}, {period: newValueDuration * 1000});
+                                    var payment = hashPaymentEndPoint.get(endPoint);
+                                    payment.doChangePeriod(newValueDuration * 1000);
                                     bot.sendMessage(chatId, "Cập nhật Period Thành công")
                                 }
                             }, doNothing);
@@ -1494,6 +1534,8 @@ bot.onText(/\/cleanDataCcu (.+)/, (msg, match) => {
         }
     }, doNothing);
 });
+
+//testBranch
 
 bot.onText(/\/changeStatus (.+)/, (msg, match) => {
     "use strict";
