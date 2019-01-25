@@ -3,30 +3,15 @@ const express = require('express');
 const bodyParser = require("body-parser");
 const request = require("request");
 const md5 = require("md5");
-const fs = require("fs")
+const fs = require("fs");
 const parse = require("csv-parse");
+const HashMap = require("hashmap");
+
+var db = require("./src/DBInteractive");
+const doNothing = require("./src/Util").doNothing;
 //const token = '666177464:AAG8mro3tNOX_6LbFTNRtwX35Y1QYOdDbC0';
 const token = '674200182:AAGdEA3ie3ZGbz2-UYsik7iVGL_bt2BusJw';
 const bot = new TelegramBot(token, {polling: true});
-const port = 3000;
-const app = express();
-var router = express.Router();
-app.use(bodyParser.urlencoded({extended: false}));
-app.use(bodyParser.json());
-const HashMap = require("hashmap");
-const mongoClient = require("mongodb").MongoClient;
-const urlMongoServer = "mongodb://localhost:27017/";
-const nameDB = "mydb";
-const defaultPeriod = 30 * 1000;
-const minDuration = 30;
-const maxTimeAlert = 3;
-const defaultPercent = 0.3;
-const timesInCreaseLimit = 4;
-const serverPort = 10091;
-const maxPermissionQueueSize = 1000;
-
-var hashPaymentEndPoint = new HashMap();
-
 var typePayments = new HashMap();
 var csvPaymentTypePath = "./paymentType.csv";
 
@@ -38,6 +23,30 @@ fs.createReadStream(csvPaymentTypePath).pipe(parse({delimiter: ':'})).on('data',
     "use strict";
     console.log("End read CSV");
 });
+
+db.dropCollection("aaaaaaaa");
+module.exports = {bot, typePayments};
+
+const port = 3000;
+const app = express();
+var router = express.Router();
+app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.json());
+
+var Ccu = require("./src/Ccu");
+var Queue = require("./src/Queue");
+var CcuAndQueue = require("./src/CcuAndQueue");
+var Payment = require("./src/Payment");
+
+const minDuration = 30;
+
+const serverPort = 10091;
+
+const durationPing = 10 * 1000;
+
+var hashPaymentEndPoint = new HashMap();
+
+var hashIntervalPingServer = new HashMap();
 
 function updateClient(postData, uri, chatId, callBack) {
     "use strict";
@@ -52,180 +61,14 @@ function updateClient(postData, uri, chatId, callBack) {
 
     request(clientServerOptions, function (err, response) {
         if (err || (response.statusCode < 200 && response.statusCode > 299)) {
-            bot.sendMessage(chatId, "Có lỗi trong quá trình gửi tin! Vui lòng thử lại");
+            bot.sendMessage(chatId, "SERVER KHÔNG PHẢN HỒI. RẤT CÓ THỂ SERVER ĐANG CHẾT HOẶC NGỪNG HOẠT ĐỘNG");
         } else {
             callBack(response);
         }
     });
 }
 
-function createDatabase() {
-    "use strict";
-    mongoClient.connect(urlMongoServer + nameDB, function (err, db) {
-        "use strict";
-        if (err) throw err;
-        console.log("Database create!");
-        db.close();
-    });
-}
-
-var doNothing = function (err) {
-};
-
-function createCollection(nameCollection) {
-    "use strict";
-    nameCollection = String(nameCollection);
-    mongoClient.connect(urlMongoServer, function (err, db) {
-        if (err) throw err;
-        var dbo = db.db(nameDB);
-        if (dbo.collection(nameDB)) {
-            console.log("COLLECTION IS EXIST!");
-            db.close();
-            return;
-        }
-        dbo.createCollection(nameCollection, {autoIndexId: false});
-    });
-}
-
-function insertDataToCollection(nameCollection, obj) {
-    "use strict";
-    nameCollection = String(nameCollection);
-    return new Promise((resolve, reject) => {
-        mongoClient.connect(urlMongoServer, function (err, db) {
-            if (err) reject(err);
-            var dbo = db.db(nameDB);
-            var promise2 = new Promise((resolve1, reject1) => {
-                dbo.collection(nameCollection).insertOne(obj, function (err, res) {
-                    if (err) reject1(err);
-                    db.close();
-                    resolve1(true);
-                });
-            });
-            promise2.then((rs) => {
-                resolve(rs);
-            }, (error) => {
-                reject(error);
-            })
-
-        });
-    })
-}
-
-function insertManyDataToCollection(nameCollection, obj) {
-    "use strict";
-    nameCollection = String(nameCollection);
-    return new Promise((resolve, reject) => {
-        mongoClient.connect(urlMongoServer, function (err, db) {
-            if (err) reject(err);
-            var dbo = db.db(nameDB);
-            var promise2 = new Promise((resolve1, reject1) => {
-                dbo.collection(nameCollection).insertMany(obj, function (err, res) {
-                    if (err) reject1(err);
-                    db.close();
-                    resolve1(true);
-                });
-            });
-            promise2.then((rs) => {
-                resolve(rs);
-            }, (error) => {
-                reject(error);
-            })
-
-        });
-    })
-}
-
-function findDataReturnObjectFromCollection(nameCollection, obj) {
-    "use strict";
-    nameCollection = String(nameCollection);
-    return new Promise((resolve, reject) => {
-        mongoClient.connect(urlMongoServer, function (err, db) {
-            if (err) throw err;
-            var dbo = db.db(nameDB);
-            var promise2 = new Promise((resolve2, reject2) => {
-                dbo.collection(nameCollection).findOne(obj, function (err, result) {
-                    if (err) throw reject2(err);
-                    db.close();
-                    resolve2(result);
-                });
-            });
-
-            promise2.then((result2) => {
-                resolve(result2);
-            }, (errMsg) => reject(errMsg));
-        });
-    });
-}
-
-function findDataReturnArrayFromCollection(nameCollection, obj) {
-    "use strict";
-    nameCollection = String(nameCollection);
-    return new Promise((resolve, reject) => {
-        mongoClient.connect(urlMongoServer, function (err, db) {
-            if (err) throw err;
-            var dbo = db.db(nameDB);
-            var promise2 = new Promise((resolve2, reject2) => {
-                dbo.collection(nameCollection).find(obj).toArray(function (err, result) {
-                    if (err) throw reject2(err);
-                    db.close();
-                    resolve2(result);
-                });
-            });
-
-            promise2.then((result2) => {
-                resolve(result2);
-            }, (errMsg) => reject(errMsg));
-        });
-    });
-
-}
-
-function deleteDataFromCollection(nameCollection, obj) {
-    "use strict";
-    nameCollection = String(nameCollection);
-    mongoClient.connect(urlMongoServer, function (err, db) {
-        if (err) throw err;
-        var dbo = db.db(nameDB);
-        dbo.collection(nameCollection).deleteMany(obj, function (err, obj) {
-            if (err) throw err;
-            db.close();
-        });
-    });
-}
-
-function updateDataFromCollection(nameCollection, query, valueNew) {
-    "use strict";
-    nameCollection = String(nameCollection);
-    mongoClient.connect(urlMongoServer, function (err, db) {
-        if (err) throw err;
-        var newValue = {$set: valueNew};
-        var dbo = db.db(nameDB);
-        dbo.collection(nameCollection).updateOne(query, newValue, function (err, res) {
-            if (err) throw err;
-            db.close();
-        });
-    });
-}
-
-function dropCollection(nameCollection) {
-    "use strict";
-    nameCollection = String(nameCollection);
-    mongoClient.connect(urlMongoServer, function (err, db) {
-        if (err) throw err;
-        var dbo = db.db(nameDB);
-        if (!dbo.collection(nameDB)) {
-            console.log("COLLECTION IS NOT EXIST!");
-            return;
-        }
-        dbo.collection(nameCollection).drop(function (err, delOK) {
-            if (err) throw err;
-            if (delOK) console.log("Collection " + nameCollection + " deleted!");
-            db.close();
-        });
-    });
-}
-
-createDatabase();
+db.createDatabase();
 
 function getIpWithNormalFormat(ipClient) {
     "use strict";
@@ -236,34 +79,67 @@ function getIpWithNormalFormat(ipClient) {
         return null;
     }
 }
-// END IP SESSION
 
 var listGroupChatId = [];
 var listEndPoint = [];
 
-findDataReturnObjectFromCollection("GroupChatInfo", {}).then((result) => {
+db.findDataReturnObjectFromCollection("GroupChatInfo", {}).then((result) => {
     if (result) {
         listGroupChatId = result.listGroupChatId;
         if (!listGroupChatId) {
             listGroupChatId = [];
-            insertDataToCollection("GroupChatInfo", {listGroupChatId: listGroupChatId});
+            db.insertDataToCollection("GroupChatInfo", {listGroupChatId: listGroupChatId});
+        } else {
+            listGroupChatId.forEach((item) => {
+                "use strict";
+                db.findDataReturnObjectFromCollection(item + "_Ip", {}).then((result1) => {
+                    if(result1) {
+                        var interval = setInterval(pingServer.bind(console, item), durationPing, durationPing);
+                        hashIntervalPingServer.set(item, interval);
+                    }
+                }, doNothing);
+            });
         }
     } else {
         listGroupChatId = [];
-        insertDataToCollection("GroupChatInfo", {listGroupChatId: listGroupChatId});
+        db.insertDataToCollection("GroupChatInfo", {listGroupChatId: listGroupChatId});
     }
 }, (errMsg) => {
     listGroupChatId = [];
-    insertDataToCollection("GroupChatInfo", {listGroupChatId: listGroupChatId});
+    db.insertDataToCollection("GroupChatInfo", {listGroupChatId: listGroupChatId});
 });
 
-findDataReturnArrayFromCollection("EndPointInfo", {}).then((result) => {
+function pingServer(chatId) {
+    "use strict";
+    db.findDataReturnObjectFromCollection(chatId + "_Ip", {}).then((rs) => {
+        if(rs && rs.ip) {
+            var ip = rs.ip;
+            db.findDataReturnObjectFromCollection(chatId + "_Passcode", {}).then((rs1) => {
+                if(rs1) {
+                    var passcode = rs1.passcode;
+                    updateClient({
+                        passcode: passcode
+                    }, ip + ":" + serverPort + "/ping", chatId, (response) => {
+                        "use strict";
+                        bot.sendMessage(chatId, "PING THÀNH CÔNG");
+                    });
+                } else {
+                    bot.sendMessage(chatId, "CHƯA TỒN TẠI PASSCODE")
+                }
+            }, doNothing);
+        } else {
+            bot.sendMessage(chatId, "CHƯA TỒN TẠI IP. CÓ THỂ THÊM BẰNG LỆNH '/changeIp ip'");
+        }
+    }, doNothing);
+}
+
+db.findDataReturnArrayFromCollection("EndPointInfo", {}).then((result) => {
     if (result) {
         result.forEach((item) => {
             var endPoint = item.endPoint;
             var idChat = item.groupId;
             if (endPoint) {
-                findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((result4) => {
+                db.findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((result4) => {
                     if (result4) {
                         var type = result4.type;
                         listEndPoint.push(endPoint);
@@ -300,7 +176,7 @@ function addEndPoint(endPoint, chatId, type) {
     } else {
         objectChoose.initData(endPoint);
 
-        if(type == "PAYMENT") {
+        if (type == "PAYMENT") {
             hashPaymentEndPoint.set(endPoint, objectChoose);
         }
         console.log("Add new endPoint : " + endPoint + "|" + type);
@@ -321,13 +197,17 @@ function addEndPoint(endPoint, chatId, type) {
             var data = req.body.data;
             var index = req.body.index;
 
-            findDataReturnObjectFromCollection(chatId + "_Ip", {}).then((rsMsg) => {
+            db.findDataReturnObjectFromCollection(chatId + "_Ip", {}).then((rsMsg) => {
                 if (!rsMsg) {
-                    insertDataToCollection(chatId + "_Ip", {ip: ipFormat}).then(doNothing, doNothing);
+                    db.insertDataToCollection(chatId + "_Ip", {ip: ipFormat}).then(doNothing, doNothing);
+                    if(!hashIntervalPingServer.get(chatId)) {
+                        var interval = setInterval(pingServer.bind(console, chatId), durationPing, durationPing);
+                        hashIntervalPingServer.set(chatId, interval);
+                    }
                 }
             }, doNothing);
 
-            findDataReturnObjectFromCollection(chatId + "_Passcode", {}).then((rs) => {
+            db.findDataReturnObjectFromCollection(chatId + "_Passcode", {}).then((rs) => {
                 if (rs) {
                     if (rs.passcode != passcode) {
                         res.send(false);
@@ -335,691 +215,16 @@ function addEndPoint(endPoint, chatId, type) {
                         res.send(objectChoose.doCheckAlert(index, data));
                     }
                 } else {
-                    insertDataToCollection(chatId + "_Passcode", {passcode: passcode}).then(doNothing, doNothing);
+                    db.insertDataToCollection(chatId + "_Passcode", {passcode: passcode}).then(doNothing, doNothing);
                     res.send(objectChoose.doCheckAlert(index, data));
                 }
             }, (err) => {
-                insertDataToCollection(chatId + "_Passcode", {passcode: passcode}).then(doNothing, doNothing);
+                db.insertDataToCollection(chatId + "_Passcode", {passcode: passcode}).then(doNothing, doNothing);
                 res.send(objectChoose.doCheckAlert(index, data));
             });
 
         });
     }
-}
-
-class Ccu {
-    constructor(endPoint, chatId) {
-        "use strict";
-        this.endPoint = endPoint;
-        this.chatId = chatId;
-    }
-
-    initData(endPoint) {
-        "use strict";
-
-        findDataReturnObjectFromCollection(endPoint + "_TimeAlertContinuousWeek", {}).then((result) => {
-            if (!result) {
-                insertDataToCollection(endPoint + "_TimeAlertContinuousWeek", {timesAlert: 0}).then(doNothing, doNothing);
-            }
-        }, doNothing);
-
-        findDataReturnObjectFromCollection(endPoint + "_TimeAlertContinuousYesterday", {}).then((result) => {
-            if (!result) {
-                insertDataToCollection(endPoint + "_TimeAlertContinuousYesterday", {timesAlert: 0}).then(doNothing, doNothing);
-            }
-        }, doNothing);
-
-        findDataReturnObjectFromCollection(endPoint + "_TYPE", {}).then((result) => {
-            if(!result) {
-                insertDataToCollection(endPoint + "_TYPE", {type : "CCU"}).then(doNothing, doNothing);
-            }
-        }, doNothing);
-
-        findDataReturnObjectFromCollection(endPoint + "_Percent", {}).then((result) => {
-            if (!result) {
-                insertDataToCollection(endPoint + "_Percent", {percent: defaultPercent}).then(doNothing, doNothing);
-            }
-        }, doNothing);
-
-        findDataReturnObjectFromCollection(endPoint + "_MaxTimesAlertContinuous", {}).then((result) => {
-            if (!result) {
-                insertDataToCollection(endPoint + "_MaxTimesAlertContinuous", {maxTimeAlert: maxTimeAlert}).then(doNothing, doNothing);
-            }
-        }, doNothing);
-
-        findDataReturnObjectFromCollection(endPoint, {}).then((result) => {
-            if (!result) {
-                this.fakeDataCCU();
-            }
-        }, doNothing);
-    }
-
-    fakeDataCCU() {
-        "use strict";
-        var dataYesterday = [{index: 1710, dayOfWeek: 0, data: 1500}, {index: 1711, dayOfWeek: 0, data: 1}, {
-            index: 1712,
-            dayOfWeek: 0,
-            data: 2
-        }, {index: 1713, dayOfWeek: 0, data: 1500}, {index: 1714, dayOfWeek: 0, data: 1500}, {
-            index: 1715,
-            dayOfWeek: 0,
-            data: 1500
-        }, {index: 1716, dayOfWeek: 0, data: 1500}, {index: 1717, dayOfWeek: 0, data: 1}, {
-            index: 1718,
-            dayOfWeek: 0,
-            data: 1500
-        }];
-        var dataYesterday1 = [{index: 1710, dayOfWeek: 1, data: 1500}, {index: 1711, dayOfWeek: 1, data: 1}, {
-            index: 1712,
-            dayOfWeek: 1,
-            data: 2
-        }, {index: 1713, dayOfWeek: 1, data: 1500}, {index: 1714, dayOfWeek: 1, data: 1500}, {
-            index: 1715,
-            dayOfWeek: 1,
-            data: 1500
-        }, {index: 1716, dayOfWeek: 1, data: 1500}, {index: 1717, dayOfWeek: 1, data: 1}, {
-            index: 1718,
-            dayOfWeek: 1,
-            data: 1500
-        }];
-        var dataYesterday2 = [{index: 1710, dayOfWeek: 2, data: 1500}, {index: 1711, dayOfWeek: 2, data: 1}, {
-            index: 1712,
-            dayOfWeek: 2,
-            data: 2
-        }, {index: 1713, dayOfWeek: 2, data: 1500}, {index: 1714, dayOfWeek: 2, data: 1500}, {
-            index: 1715,
-            dayOfWeek: 2,
-            data: 1500
-        }, {index: 1716, dayOfWeek: 2, data: 1500}, {index: 1717, dayOfWeek: 2, data: 1}, {
-            index: 1718,
-            dayOfWeek: 2,
-            data: 1500
-        }];
-        var dataYesterday3 = [{index: 1710, dayOfWeek: 3, data: 1500}, {index: 1711, dayOfWeek: 3, data: 1}, {
-            index: 1712,
-            dayOfWeek: 3,
-            data: 2
-        }, {index: 1713, dayOfWeek: 3, data: 1500}, {index: 1714, dayOfWeek: 3, data: 1500}, {
-            index: 1715,
-            dayOfWeek: 3,
-            data: 1500
-        }, {index: 1716, dayOfWeek: 3, data: 1500}, {index: 1717, dayOfWeek: 3, data: 1}, {
-            index: 1718,
-            dayOfWeek: 3,
-            data: 1500
-        }];
-        var dataYesterday4 = [{index: 1710, dayOfWeek: 4, data: 1500}, {index: 1711, dayOfWeek: 4, data: 1}, {
-            index: 1712,
-            dayOfWeek: 4,
-            data: 2
-        }, {index: 1713, dayOfWeek: 4, data: 1500}, {index: 1714, dayOfWeek: 4, data: 1500}, {
-            index: 1715,
-            dayOfWeek: 4,
-            data: 1500
-        }, {index: 1716, dayOfWeek: 4, data: 1500}, {index: 1717, dayOfWeek: 4, data: 1}, {
-            index: 1718,
-            dayOfWeek: 4,
-            data: 1500
-        }];
-        var dataYesterday5 = [{index: 1710, dayOfWeek: 5, data: 1500}, {index: 1711, dayOfWeek: 5, data: 1}, {
-            index: 1712,
-            dayOfWeek: 5,
-            data: 2
-        }, {index: 1713, dayOfWeek: 5, data: 1500}, {index: 1714, dayOfWeek: 5, data: 1500}, {
-            index: 1715,
-            dayOfWeek: 5,
-            data: 1500
-        }, {index: 1716, dayOfWeek: 5, data: 1500}, {index: 1717, dayOfWeek: 5, data: 1}, {
-            index: 1718,
-            dayOfWeek: 5,
-            data: 1500
-        }];
-        var dataYesterday6 = [{index: 1710, dayOfWeek: 6, data: 1500}, {index: 1711, dayOfWeek: 6, data: 1}, {
-            index: 1712,
-            dayOfWeek: 6,
-            data: 2
-        }, {index: 1713, dayOfWeek: 6, data: 1500}, {index: 1714, dayOfWeek: 6, data: 1500}, {
-            index: 1715,
-            dayOfWeek: 6,
-            data: 1500
-        }, {index: 1716, dayOfWeek: 6, data: 1500}, {index: 1717, dayOfWeek: 6, data: 1}, {
-            index: 1718,
-            dayOfWeek: 6,
-            data: 1500
-        }];
-        var listData = [];
-        listData.push(dataYesterday);
-        listData.push(dataYesterday1);
-        listData.push(dataYesterday2);
-        listData.push(dataYesterday3);
-        listData.push(dataYesterday4);
-        listData.push(dataYesterday5);
-        listData.push(dataYesterday6);
-
-        for (var i = 0; i <= 6; i++) {
-            insertManyDataToCollection(this.endPoint, listData[i]).then(doNothing, doNothing);
-        }
-    }
-
-    checkConditionAlert(crrValue, oldValue, coefficient) {
-        "use strict";
-        return (crrValue < oldValue * coefficient);
-    }
-
-    doCheckAlert(index, data) {
-        "use strict";
-        var dayOfWeek;
-        try {
-            data = parseInt(data);
-            index = parseInt(index);
-            var crrDate = new Date(index);
-
-            index = parseInt((crrDate.getHours() * 3600 + crrDate.getMinutes() * 60 + crrDate.getSeconds()) / minDuration);
-            dayOfWeek = crrDate.getDay();
-        } catch (err1) {
-            return false;
-        }
-
-        console.log("CHECK WITH CCU");
-
-        this.checkNeedAlert(index, data, this.chatId, this.endPoint, dayOfWeek);
-        return true;
-    }
-
-    stringAlert(crrValue, oldValue, isWeek) {
-        "use strict";
-        if (!isWeek) {
-            return "CCU HIỆN TẠI THẤP HƠN HÔM QUA : " + (oldValue - crrValue);
-        }
-        return "CCU HIỆN TẠI THẤP HƠN TRUNG BÌNH 7 NGÀY QUA : " + (oldValue - crrValue);
-    }
-
-    removeData() {
-        "use strict";
-        deleteDataFromCollection(this.endPoint, {});
-        console.log("Remove Data Collection");
-        //dropCollection(this.endPoint);
-        //dropCollection(this.endPoint + "_Percent");
-        //dropCollection(this.endPoint + "_MaxTimesAlertContinuous");
-        //dropCollection(this.endPoint + "_TimeAlertContinuousWeek");
-        //dropCollection(this.endPoint + "_TimeAlertContinuousYesterday");
-        //dropCollection(this.endPoint + "_Type");
-    }
-
-    checkNeedAlert(index, data, chatId, endPoint, dayOfWeek) {
-        "use strict";
-        findDataReturnObjectFromCollection(endPoint, {index: index, dayOfWeek: dayOfWeek}).then((rs) => {
-            if (rs) {
-                findDataReturnArrayFromCollection(endPoint, {index: index}).then((resutl3) => {
-                    var num = resutl3.length;
-                    var sum = 0;
-                    resutl3.forEach((item) => {
-                        sum += item.data;
-                    });
-
-                    if (num > 0) {
-                        var averageData = parseInt(sum / num);
-                        findDataReturnObjectFromCollection(endPoint + "_Percent", {}).then((rsMsg) => {
-                            var percent = rsMsg.percent;
-                            console.log("PERCENT : " + percent);
-                            if (this.checkConditionAlert(data, averageData, percent)) {
-                                findDataReturnObjectFromCollection(endPoint + "_TimeAlertContinuousWeek", {}).then((rs) => {
-                                    if (rs) {
-                                        var timesAlert = rs.timesAlert;
-                                        findDataReturnObjectFromCollection(endPoint + "_MaxTimesAlertContinuous", {}).then((result) => {
-                                            if (result) {
-                                                var maxTimeAlertOfEndPoint = result.maxTimeAlert;
-                                                if (timesAlert < maxTimeAlertOfEndPoint) {
-                                                    bot.sendMessage(chatId, this.stringAlert(data, averageData, true));
-                                                    timesAlert += 1;
-                                                    updateDataFromCollection(this.endPoint + "_TimeAlertContinuousWeek", {}, {timesAlert: timesAlert});
-                                                }
-                                            } else {
-                                                if (timesAlert < maxTimeAlert) {
-                                                    bot.sendMessage(chatId, this.stringAlert(data, averageData, true));
-                                                    timesAlert += 1;
-                                                    updateDataFromCollection(this.endPoint + "_TimeAlertContinuousWeek", {}, {timesAlert: timesAlert});
-                                                    insertDataToCollection(endPoint + "_MaxTimesAlertContinuous", {maxTimeAlert: maxTimeAlert}).then(doNothing, doNothing);
-                                                }
-                                            }
-                                        }, doNothing);
-
-                                    }
-                                }, (err) => {
-                                    console.log("get TIME ALERT WEEK FAIL!");
-                                });
-
-                            } else {
-                                updateDataFromCollection(endPoint + "_TimeAlertContinuousWeek", {}, {timesAlert: 0});
-                            }
-                        }, doNothing);
-                    }
-
-                    updateDataFromCollection(endPoint, {index: index, dayOfWeek: dayOfWeek}, {
-                        index: index,
-                        data: data,
-                        dayOfWeek: dayOfWeek
-                    });
-                }, doNothing);
-
-            } else {
-                console.log("Data today in null");
-                insertDataToCollection(endPoint, {
-                    index: index,
-                    data: data,
-                    dayOfWeek: dayOfWeek
-                }).then(doNothing, doNothing);
-            }
-        }, (errMsg) => {
-            console.log("error in get data today");
-        });
-
-        var yesterday = getDayBefore(dayOfWeek);
-        findDataReturnObjectFromCollection(endPoint, {index: index, dayOfWeek: yesterday}).then((result2) => {
-            if (result2) {
-                var dataYesterday = result2.data;
-                console.log("ccu yesterday :" + JSON.stringify(dataYesterday));
-                if (dataYesterday) {
-                    findDataReturnObjectFromCollection(endPoint + "_Percent", {}).then((rsMsg) => {
-                        var percent = rsMsg.percent;
-                        if (this.checkConditionAlert(data, dataYesterday, percent)) {
-                            findDataReturnObjectFromCollection(endPoint + "_TimeAlertContinuousYesterday", {}).then((rs) => {
-                                if (rs) {
-                                    var timesAlert = rs.timesAlert;
-                                    findDataReturnObjectFromCollection(endPoint + "_MaxTimesAlertContinuous", {}).then((result) => {
-                                        if (result) {
-                                            var maxTimeAlertOfEndPoint = result.maxTimeAlert;
-                                            if (timesAlert < maxTimeAlertOfEndPoint) {
-                                                bot.sendMessage(chatId, this.stringAlert(data, dataYesterday, false));
-                                                timesAlert += 1;
-                                                updateDataFromCollection(this.endPoint + "_TimeAlertContinuousYesterday", {}, {timesAlert: timesAlert});
-                                            }
-                                        } else {
-                                            if (timesAlert < maxTimeAlert) {
-                                                bot.sendMessage(chatId, this.stringAlert(data, dataYesterday, false));
-                                                timesAlert += 1;
-                                                updateDataFromCollection(this.endPoint + "_TimeAlertContinuousYesterday", {}, {timesAlert: timesAlert});
-                                                insertDataToCollection(endPoint + "_MaxTimesAlertContinuous", {maxTimeAlert: maxTimeAlert}).then(doNothing, doNothing);
-                                            }
-                                        }
-                                    }, doNothing);
-                                }
-                            }, (err) => {
-                                console.log("get TIME ALERT YESTERDAY FAIL!");
-                            });
-
-                        } else {
-                            updateDataFromCollection(endPoint + "_TimeAlertContinuousYesterday", {}, {timesAlert: 0});
-                        }
-                    }, doNothing);
-                }
-            } else {
-                console.log("have no ccu yesterday!");
-            }
-        }, (err2) => {
-            console.log("GET DATA YESTERDAY ERROR");
-        });
-    }
-}
-
-class Queue {
-    constructor(endPoint, chatId) {
-        "use strict";
-        this.endPoint = endPoint;
-        this.chatId = chatId;
-    }
-
-    checkConditionAlert(crrValue, oldValue) {
-        "use strict";
-        return (crrValue > oldValue || (crrValue == oldValue && crrValue > maxPermissionQueueSize));
-    }
-
-    //removeData() {
-    //    "use strict";
-    //    dropCollection(this.endPoint);
-    //    dropCollection(this.endPoint + "_ExtensionQueue");
-    //    dropCollection(this.endPoint + "_OutGoingQueue");
-    //    dropCollection(this.endPoint + "_ExtensionQueue");
-    //    dropCollection(this.endPoint + "_Type");
-    //}
-
-    initData(endPoint) {
-        "use strict";
-        findDataReturnObjectFromCollection(endPoint, {type: "SystemQueue"}).then((rs) => {
-            if (!rs) {
-                insertDataToCollection(endPoint, {type: "SystemQueue", timesIncrease: 0}).then(doNothing, doNothing);
-            }
-        }, doNothing);
-        findDataReturnObjectFromCollection(endPoint, {type: "OutGoingQueue"}).then((rs) => {
-            if (!rs) {
-                insertDataToCollection(endPoint, {type: "OutGoingQueue", timesIncrease: 0}).then(doNothing, doNothing);
-            }
-        }, doNothing);
-        findDataReturnObjectFromCollection(endPoint, {type: "ExtensionQueue"}).then((rs) => {
-            if (!rs) {
-                insertDataToCollection(endPoint, {type: "ExtensionQueue", timesIncrease: 0}).then(doNothing, doNothing);
-            }
-        }, doNothing);
-        findDataReturnObjectFromCollection(endPoint + "_TYPE", {}).then((rs) => {
-            if(!rs) {
-                insertDataToCollection(endPoint + "_TYPE", {type : "QUEUE"}).then(doNothing, doNothing);
-            }
-        }, doNothing);
-
-    }
-
-    doCheckAlert(index, data) {
-        "use strict";
-        if (!data) return false;
-
-        var systemQueue = data.systemQueue;
-        var outGoingQueue = data.outGoingQueue;
-        var extensionQueue = data.extensionQueue;
-
-        if (systemQueue == undefined || outGoingQueue == undefined || extensionQueue == undefined) {
-            return false;
-        }
-
-        console.log("CHECK WITH QUEUE");
-        this.checkNeedAlert(systemQueue, outGoingQueue, extensionQueue, this.chatId, this.endPoint);
-
-        return true;
-    }
-
-    stringAlert(type) {
-        "use strict";
-        return type + " ĐANG TĂNG LÊN LIÊN TỤC!";
-    }
-
-    checkNeedAlertWithType(chatId, type, endPoint, crrValue) {
-        "use strict";
-        findDataReturnObjectFromCollection(endPoint + "_" + type, {}).then((rs) => {
-            if (rs) {
-                var oldValue = rs.data;
-
-                if (this.checkConditionAlert(crrValue, oldValue)) {
-                    findDataReturnObjectFromCollection(endPoint, {type: type}).then((result) => {
-                        if (result) {
-                            var timesIncrease = result.timesIncrease;
-                            if (timesIncrease >= timesInCreaseLimit) {
-                                bot.sendMessage(chatId, this.stringAlert(type));
-                            }
-                            updateDataFromCollection(endPoint, {type: type}, {
-                                type: type,
-                                timesIncrease: timesIncrease + 1
-                            });
-                        } else {
-                            insertDataToCollection(endPoint, {type: type, timesIncrease: 1}).then(doNothing, doNothing);
-                        }
-                    }, doNothing);
-                } else {
-                    updateDataFromCollection(endPoint, {type: type}, {type: type, timesIncrease: 1});
-                }
-                updateDataFromCollection(endPoint + "_" + type, {}, {data: crrValue});
-            } else {
-                insertDataToCollection(endPoint + "_" + type, {data: crrValue}).then(doNothing, doNothing);
-            }
-        }, (err) => {
-            insertDataToCollection(endPoint + "_" + type, {data: crrValue}).then(doNothing, doNothing);
-        });
-    }
-
-    checkNeedAlert(systemQueue, outGoingQueue, extensionQueue, chatId, endPoint) {
-        "use strict";
-        this.checkNeedAlertWithType(chatId, "SystemQueue", endPoint, systemQueue);
-        this.checkNeedAlertWithType(chatId, "OutGoingQueue", endPoint, outGoingQueue);
-        this.checkNeedAlertWithType(chatId, "ExtensionQueue", endPoint, extensionQueue);
-        return true;
-    }
-}
-
-class CcuAndQueue {
-    constructor(endPoint, chatId) {
-        "use strict";
-        this.ccu = new Ccu(endPoint, chatId);
-        this.queue = new Queue(endPoint, chatId);
-    }
-
-    initData(endPoint) {
-        "use strict";
-        findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((result) => {
-            if (!result) {
-                insertDataToCollection(endPoint + "_Type", {type: "CCU_AND_QUEUE"}).then((success) => {
-                    this.ccu.initData(endPoint);
-                    this.queue.initData(endPoint);
-                }, doNothing);
-            }
-        }, doNothing);
-
-        findDataReturnObjectFromCollection(endPoint + "_Status", {}).then((result) => {
-            if (!result) {
-                insertDataToCollection(endPoint + "_Status", {isActive: true}).then(doNothing, doNothing);
-            }
-        }, doNothing);
-    }
-
-    removeData() {
-        "use strict";
-        this.ccu.removeData();
-        //this.queue.removeData();
-    }
-
-    doCheckAlertWithEndPoint(index, data, endPoint) {
-        "use strict";
-        findDataReturnObjectFromCollection(endPoint + "_Status", {}).then((result) => {
-            if (!result || !result.isActive) {
-                console.log(endPoint + " ĐANG TRONG TRẠNG THÁI UNACTIVE");
-            } else {
-                var check1;
-                if (data && data.ccu != undefined) {
-                    check1 = this.ccu.doCheckAlert(index, data.ccu);
-                }
-                var check2 = this.queue.doCheckAlert(index, data);
-                return (check1 && check2);
-            }
-        }, doNothing);
-    }
-
-    doCheckAlert(index, data) {
-        "use strict";
-        var endPoint = this.ccu.endPoint;
-        this.doCheckAlertWithEndPoint(index, data, endPoint);
-    }
-}
-
-//class Payment {
-//    constructor(endPoint, chatId) {
-//        "use strict";
-//        this.endPoint = endPoint;
-//        this.chatId = chatId;
-//    }
-//
-//    initData(endPoint) {
-//        "use strict";
-//
-//        var seft = this;
-//        var functionTimeOut = function () {
-//
-//            findDataReturnObjectFromCollection(endPoint, {}).then((rs) => {
-//                if (rs) {
-//                    var numPayment = rs.numPayment;
-//                    if (numPayment <= 0) {
-//                        bot.sendMessage(seft.chatId, "ĐÃ QUÁ LÂU MÀ CHƯA THẤY CÓ PAYMENT! HUHU");
-//                    }
-//
-//                    updateDataFromCollection(endPoint {}, {numPayment: 0});
-//                    findDataReturnObjectFromCollection(endPoint + "_Period", {}).then((result) => {
-//                        var timeOut = result.period;
-//                        setTimeout(functionTimeOut, timeOut);
-//                    }, doNothing);
-//                }
-//            }, doNothing);
-//        };
-//
-//        findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rs) => {
-//            if (!rs) {
-//                insertDataToCollection(endPoint + "_Type", {type: "PAYMENT"}).then(doNothing, doNothing);
-//            }
-//        }, doNothing);
-//
-//
-//        findDataReturnObjectFromCollection(endPoint, {}).then((rsMsg) => {
-//            if (rsMsg) {
-//                findDataReturnObjectFromCollection(endPoint + "_Period", {}).then((result) => {
-//                    if (result) {
-//                        var timeOut = result.period;
-//                        setTimeout(functionTimeOut, timeOut);
-//                    } else {
-//                        insertDataToCollection(endPoint + "_Period", {period: defaultPeriod}).then((ok1) => {
-//                            setTimeout(functionTimeOut, defaultPeriod);
-//                        }, doNothing);
-//                    }
-//                }, doNothing);
-//            } else {
-//                insertDataToCollection(endPoint, {numPayment: 0}).then((ok) => {
-//                    insertDataToCollection(endPoint + "_Period", {period: defaultPeriod}).then((ok1) => {
-//                        setTimeout(functionTimeOut, defaultPeriod);
-//                    }, doNothing);
-//                }, doNothing);
-//            }
-//        }, doNothing);
-//
-//    }
-//
-//    doCheckAlert(index, data) {
-//        "use strict";
-//        console.log("add Payment");
-//        findDataReturnObjectFromCollection(this.endPoint, {}).then((rs) => {
-//            if (rs) {
-//                var numPayment = rs.numPayment;
-//                updateDataFromCollection(this.endPoint, {}, {numPayment: numPayment + 1});
-//            } else {
-//                return false;
-//            }
-//        }, doNothing);
-//        return true;
-//    }
-//
-//}
-class Payment {
-    constructor(endPoint, chatId) {
-        "use strict";
-        this.endPoint = endPoint;
-        this.chatId = chatId;
-        this.seflInterval = null;
-        this.lastTimeCheck = null;
-        this.functionInterval = null;
-    }
-
-    //removeData() {
-    //    "use strict";
-    //    //dropCollection(this.endPoint);
-    //    //dropCollection(this.endPoint + "_Type");
-    //    //dropCollection(this.endPoint + "_Period");
-    //}
-
-    getCrrTimeInMilis() {
-        "use strict";
-        return (new Date().getTime());
-    }
-
-    initData(endPoint) {
-        "use strict";
-        var seft = this;
-        seft.lastTimeCheck = seft.getCrrTimeInMilis();
-        this.functionInterval = function () {
-            findDataReturnObjectFromCollection(endPoint + "_Status", {}).then((result) => {
-                if (!result || !result.isActive) {
-                    console.log(endPoint + " ĐANG TRONG TRẠNG THÁI UNACTIVE");
-                } else {
-                    findDataReturnArrayFromCollection(endPoint, {}).then((rs) => {
-                        if (rs && rs.length > 0) {
-                            rs.forEach((item) => {
-                                var numPayment = item.numPayment;
-                                if (numPayment <= 0) {
-                                    bot.sendMessage(seft.chatId, "ĐÃ QUÁ LÂU MÀ CHƯA THẤY CÓ PAYMENT Ở CHANEL " + typePayments.get(item.chanel));
-                                }
-                                updateDataFromCollection(endPoint, {chanel: item.chanel}, {numPayment: 0});
-                            })
-                        }
-                    }, doNothing);
-                    seft.lastTimeCheck = seft.getCrrTimeInMilis();
-                    console.log("LAST TIME : " + seft.lastTimeCheck);
-                }
-            }, doNothing);
-        };
-
-
-        //findDataReturnObjectFromCollection(endPoint + "_LastTimeCheck", {}).then((rs) => {
-        //    if (!rs) {
-        //        insertDataToCollection(endPoint + "_LastTimeCheck", {time: getCrrTimeInMilis()}).then(doNothing, doNothing);
-        //    } else {
-        //        updateDataFromCollection(endPoint + "_LastTimeCheck",{}, {time: getCrrTimeInMilis()});
-        //    }
-        //}, doNothing);
-
-        findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rs) => {
-            if (!rs) {
-                insertDataToCollection(endPoint + "_Type", {type: "PAYMENT"}).then(doNothing, doNothing);
-            }
-        }, doNothing);
-
-        findDataReturnObjectFromCollection(endPoint + "_Status", {}).then((result) => {
-            if (!result) {
-                insertDataToCollection(endPoint + "_Status", {isActive: true}).then(doNothing, doNothing);
-            }
-        }, doNothing);
-
-        findDataReturnArrayFromCollection(endPoint, {}).then((rsMsg) => {
-            if (!rsMsg || rsMsg.length == 0) {
-                bot.sendMessage(seft.chatId, "HIỆN TẠI CHƯA CÓ LOẠI PAYMENT NÀO ĐƯỢC CHỌN ĐỂ ALERT, VUI LÒNG THÊM!");
-            }
-            findDataReturnObjectFromCollection(endPoint + "_Period", {}).then((result) => {
-                if (result) {
-                    var timeOut = result.period;
-                    seft.seflInterval = setInterval(seft.functionInterval, timeOut, timeOut);
-                } else {
-                    insertDataToCollection(endPoint + "_Period", {period: defaultPeriod}).then((ok1) => {
-                        seft.seflInterval = setInterval(seft.functionInterval, defaultPeriod, defaultPeriod);
-                    }, doNothing);
-                }
-            }, doNothing);
-        }, doNothing);
-
-    }
-
-    doChangePeriod(newDuration) {
-        "use strict";
-        var seft = this;
-        clearInterval(seft.seflInterval);
-        findDataReturnObjectFromCollection(seft.endPoint + "_Period", {}).then((result) => {
-            if(result && result.period) {
-                var period = result.period;
-                var ownTime = period - (seft.getCrrTimeInMilis() - seft.lastTimeCheck);
-                var functionTimeOut = function() {
-                    seft.functionInterval();
-                    updateDataFromCollection(seft + "_Period", {}, {period : newDuration});
-                    setInterval(seft.functionInterval, newDuration, newDuration);
-                };
-                setTimeout(functionTimeOut, ownTime);
-            }
-        },doNothing());
-    }
-
-    doCheckAlert(index, data) {
-        "use strict";
-        console.log("add Payment");
-        findDataReturnObjectFromCollection(this.endPoint, {chanel: data}).then((rs) => {
-            if (rs) {
-                var numPayment = rs.numPayment;
-                updateDataFromCollection(this.endPoint, {chanel: data}, {chanel: data, numPayment: numPayment + 1});
-            } else {
-                return false;
-            }
-        }, doNothing);
-        return true;
-    }
-
 }
 
 function testIsStart(chatId) {
@@ -1031,7 +236,8 @@ function startChanel(chatId) {
     "use strict";
     if (!listGroupChatId.includes(chatId)) {
         listGroupChatId.push(chatId);
-        updateDataFromCollection("GroupChatInfo", {}, {listGroupChatId: listGroupChatId});
+        db.updateDataFromCollection("GroupChatInfo", {}, {listGroupChatId: listGroupChatId});
+        db.insertDataToCollection(chatId + "_Passcode", {passcode : md5(token)}).then(doNothing, doNothing);
         return true;
     }
     return false;
@@ -1042,31 +248,32 @@ bot.onText(/\/changePasscode (.+)/, (msg, match) => {
     var newPasscode = match[1];
     newPasscode = md5(newPasscode);
 
-    console.log("COME HERE");
-    findDataReturnObjectFromCollection(chatId + "_Ip", {}).then((rs2) => {
-        if (rs2) {
-            var ip = rs2.ip;
-            findDataReturnObjectFromCollection(chatId + "_Passcode", {}).then((rs3) => {
-                if (rs3) {
-                    var passcode = rs3.passcode;
-                    console.log("COME HERE 1");
-                    updateClient({
-                        passcode: passcode,
-                        newPasscode: newPasscode
-                    }, ip + ":" + serverPort + "/passcode", chatId, (response) => {
-                        "use strict";
-                        updateDataFromCollection(chatId + "_Passcode", {}, {passcode: newPasscode});
-                        bot.sendMessage(chatId, "Cập nhật Passcode thành công");
-                    });
-                } else {
-                    bot.sendMessage(chatId, "CHƯA NHẬN DIỆN ĐƯỢC SERVER");
-                }
-            }, doNothing);
-        } else {
-            bot.sendMessage(chatId, "CHƯA CÓ IP! CÓ THỂ THÊM IP SERVER BẰNG LỆNH '/addIp {ip}'");
-        }
-    }, doNothing);
-
+    if(testIsStart(chatId)) {
+        db.findDataReturnObjectFromCollection(chatId + "_Ip", {}).then((rs2) => {
+            if (rs2) {
+                var ip = rs2.ip;
+                db.findDataReturnObjectFromCollection(chatId + "_Passcode", {}).then((rs3) => {
+                    if (rs3) {
+                        var passcode = rs3.passcode;
+                        updateClient({
+                            passcode: passcode,
+                            newPasscode: newPasscode
+                        }, ip + ":" + serverPort + "/passcode", chatId, (response) => {
+                            "use strict";
+                            db.updateDataFromCollection(chatId + "_Passcode", {}, {passcode: newPasscode});
+                            bot.sendMessage(chatId, "Cập nhật Passcode thành công");
+                        });
+                    } else {
+                        bot.sendMessage(chatId, "CHƯA NHẬN DIỆN ĐƯỢC SERVER");
+                    }
+                }, doNothing);
+            } else {
+                bot.sendMessage(chatId, "CHƯA CÓ IP! CÓ THỂ THÊM IP SERVER BẰNG LỆNH '/addIp {ip}'");
+            }
+        }, doNothing);
+    } else {
+        bot.sendMessage(chatId, "KÊNH NÀY HIỆN TẠI CHƯA TỒN TẠI TRÊN HỆ THỐNG");
+    }
 });
 
 bot.onText(/\/changeIp (.+)/, (msg, match) => {
@@ -1078,15 +285,23 @@ bot.onText(/\/changeIp (.+)/, (msg, match) => {
         return;
     }
 
-    findDataReturnObjectFromCollection(chatId + "_Ip", {}).then((rs2) => {
-        if (rs2) {
-            var ip = rs2.ip;
-            updateDataFromCollection(chatId + "_Ip", {ip: ip}, {ip: newIp});
-        } else {
-            insertDataToCollection(chatId + "_Ip", {ip: newIp}).then(doNothing, doNothing);
-        }
-        bot.sendMessage(chatId, "THAY ĐỔI IP SERVER GAME THÀNH CÔNG");
-    }, doNothing);
+    if(testIsStart(chatId)) {
+        db.findDataReturnObjectFromCollection(chatId + "_Ip", {}).then((rs2) => {
+            if (rs2) {
+                var ip = rs2.ip;
+                db.updateDataFromCollection(chatId + "_Ip", {ip: ip}, {ip: newIp});
+            } else {
+                db.insertDataToCollection(chatId + "_Ip", {ip: newIp}).then(doNothing, doNothing);
+                if(!hashIntervalPingServer.get(chatId)) {
+                    var interval = setInterval(pingServer.bind(console, chatId), durationPing, durationPing);
+                    hashIntervalPingServer.set(chatId, interval);
+                }
+            }
+            bot.sendMessage(chatId, "THAY ĐỔI IP SERVER GAME THÀNH CÔNG");
+        }, doNothing);
+    } else {
+        bot.sendMessage(chatId, "KÊNH NÀY HIỆN TẠI CHƯA TỒN TẠI TRÊN HỆ THỐNG");
+    }
 
 });
 
@@ -1109,18 +324,18 @@ bot.onText(/\/changePeriod (.+) (.+)/, (msg, match) => {
 
     var endPoint = match[1];
 
-    findDataReturnObjectFromCollection("EndPointInfo", {groupId: chatId, endPoint: endPoint}).then((rsMessage) => {
+    db.findDataReturnObjectFromCollection("EndPointInfo", {groupId: chatId, endPoint: endPoint}).then((rsMessage) => {
         "use strict";
         if (rsMessage) {
-            findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rs1) => {
+            db.findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rs1) => {
                 "use strict";
                 if (rs1) {
                     switch (rs1.type) {
                         case "CCU_AND_QUEUE":
-                            findDataReturnObjectFromCollection(chatId + "_Ip", {}).then((rs2) => {
+                            db.findDataReturnObjectFromCollection(chatId + "_Ip", {}).then((rs2) => {
                                 if (rs2) {
                                     var ip = rs2.ip;
-                                    findDataReturnObjectFromCollection(chatId + "_Passcode", {}).then((rs3) => {
+                                    db.findDataReturnObjectFromCollection(chatId + "_Passcode", {}).then((rs3) => {
                                         if (rs3) {
                                             var passcode = rs3.passcode;
                                             updateClient({
@@ -1139,7 +354,7 @@ bot.onText(/\/changePeriod (.+) (.+)/, (msg, match) => {
                             }, doNothing);
                             break;
                         case "PAYMENT":
-                            findDataReturnObjectFromCollection(endPoint + "_Period", {}).then((rs) => {
+                            db.findDataReturnObjectFromCollection(endPoint + "_Period", {}).then((rs) => {
                                 "use strict";
                                 if (rs) {
                                     var payment = hashPaymentEndPoint.get(endPoint);
@@ -1178,15 +393,15 @@ bot.onText(/\/changePercent (.+) (.+)/, (msg, match) => {
     }
     var endPoint = match[1];
 
-    findDataReturnObjectFromCollection("EndPointInfo", {groupId: chatId, endPoint: endPoint}).then((rsMessage) => {
+    db.findDataReturnObjectFromCollection("EndPointInfo", {groupId: chatId, endPoint: endPoint}).then((rsMessage) => {
         "use strict";
         if (rsMessage) {
-            findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rs1) => {
+            db.findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rs1) => {
                 "use strict";
                 if (rs1) {
                     switch (rs1.type) {
                         case "CCU_AND_QUEUE":
-                            updateDataFromCollection(endPoint + "_Percent", {}, {percent: newValue});
+                            db.updateDataFromCollection(endPoint + "_Percent", {}, {percent: newValue});
                             bot.sendMessage(chatId, "THAY ĐỔI THÀNH CÔNG!");
                             break;
                         default :
@@ -1222,15 +437,15 @@ bot.onText(/\/changeMaxTimesContiniousAlert (.+) (.+)/, (msg, match) => {
     }
     var endPoint = match[1];
 
-    findDataReturnObjectFromCollection("EndPointInfo", {groupId: chatId, endPoint: endPoint}).then((rsMessage) => {
+    db.findDataReturnObjectFromCollection("EndPointInfo", {groupId: chatId, endPoint: endPoint}).then((rsMessage) => {
         "use strict";
         if (rsMessage) {
-            findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rs1) => {
+            db.findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rs1) => {
                 "use strict";
                 if (rs1) {
                     switch (rs1.type) {
                         case "CCU_AND_QUEUE":
-                            updateDataFromCollection(endPoint + "_MaxTimesAlertContinuous", {}, {maxTimeAlert: newValue});
+                            db.updateDataFromCollection(endPoint + "_MaxTimesAlertContinuous", {}, {maxTimeAlert: newValue});
                             bot.sendMessage(chatId, "THAY ĐỔI THÀNH CÔNG!");
                             break;
                         default :
@@ -1252,39 +467,49 @@ bot.onText(/\/startBot/, (msg) => {
     const chatId = msg.chat.id;
     var result = startChanel(chatId);
 
-    const resp = (result == true) ? "Start Success" : "Already started";
+    const resp = (result) ? "Start Success" : "Already started";
     bot.sendMessage(chatId, resp);
 });
 
 bot.onText(/\/listEndPoint/, (msg) => {
     const chatId = msg.chat.id;
-    findDataReturnArrayFromCollection("EndPointInfo", {groupId: chatId}).then((rs) => {
+    if(!testIsStart(chatId)) {
+        bot.sendMessage(chatId, "GROUP CỦA BẠN CHƯA KÍCH HOẠT BOT");
+        return;
+    }
+    db.findDataReturnArrayFromCollection("EndPointInfo", {groupId: chatId}).then((rs) => {
         "use strict";
         if (rs.length > 0) {
             rs.forEach((item) => {
                 var result = "";
                 var endPoint = item.endPoint;
                 result += endPoint;
-                findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rst) => {
+                db.findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rst) => {
                     if (rst) {
                         result += " | TYPE : " + rst.type;
-                        findDataReturnObjectFromCollection(endPoint + "_Percent", {}).then((rsMsg) => {
-                            if (rsMsg) {
-                                result += " | COEFFICIENT : " + rsMsg.percent;
-                                bot.sendMessage(chatId, result);
+                        db.findDataReturnObjectFromCollection(endPoint + "_Status", {}).then((rsMsg2) => {
+                            if (rsMsg2) {
+                                result += " | IS_ACTIVE : " + rsMsg2.isActive;
+                                db.findDataReturnObjectFromCollection(endPoint + "_Percent", {}).then((rsMsg) => {
+                                    if (rsMsg) {
+                                        result += " | COEFFICIENT : " + rsMsg.percent;
+                                        bot.sendMessage(chatId, result);
+                                    }
+                                }, doNothing);
+
+                                db.findDataReturnObjectFromCollection(endPoint + "_Period", {}).then((rsMsg) => {
+                                    if (rsMsg) {
+                                        var date = new Date(null);
+                                        date.setMilliseconds(rsMsg.period);
+                                        result += " | PERIOD : " + date.toISOString().substr(11, 8);
+                                        bot.sendMessage(chatId, result);
+                                    }
+                                }, doNothing);
                             }
                         }, doNothing);
 
-                        findDataReturnObjectFromCollection(endPoint + "_Period", {}).then((rsMsg) => {
-                            if (rsMsg) {
-                                var date = new Date(null);
-                                date.setMilliseconds(rsMsg.period);
-                                result += " | PERIOD : " + date.toISOString().substr(11, 8);
-                                bot.sendMessage(chatId, result);
-                            }
-                        }, doNothing);
                     } else {
-                        result += " : Chưa cập nhật type";
+                        result += " : CHƯA CẬP NHẬT TYPE";
                         bot.sendMessage(chatId, result);
                     }
                 }, (err) => {
@@ -1299,16 +524,6 @@ bot.onText(/\/listEndPoint/, (msg) => {
         bot.sendMessage(chatId, "ĐANG XẢY RA SỰ CỐ! VUI LÒNG THỬ LẠI!");
     });
 });
-
-function getDayBefore(crrDay) {
-    if (crrDay == 0) return 6;
-    return crrDay - 1;
-}
-
-function getDayAfter(crrDay) {
-    if (crrDay == 6) return 0;
-    return crrDay + 1;
-}
 
 function checkExistEndPoint(endPoint) {
     "use strict";
@@ -1335,7 +550,7 @@ bot.onText(/\/addEndPoint (.+)/, (msg, match) => {
 
     listEndPoint.push(endPoint);
 
-    insertDataToCollection("EndPointInfo", {groupId: chatId, endPoint: endPoint}).then(doNothing, doNothing);
+    db.insertDataToCollection("EndPointInfo", {groupId: chatId, endPoint: endPoint}).then(doNothing, doNothing);
 
     bot.sendMessage(chatId, 'Vui lòng chọn loại!', {
         reply_markup: {
@@ -1375,15 +590,15 @@ bot.onText(/\/addChanelPayment (.+) (.+)/, (msg, match) => {
     //    return;
     //}
 
-    findDataReturnObjectFromCollection("EndPointInfo", {groupId: chatId, endPoint: endPoint}).then((result) => {
+    db.findDataReturnObjectFromCollection("EndPointInfo", {groupId: chatId, endPoint: endPoint}).then((result) => {
         "use strict";
         if (!result) {
             bot.sendMessage(chatId, "ENDPOINT NÀY KHÔNG TỒN TẠI TRÊN CHANEL CỦA BẠN");
         } else {
             if (typePayments.has(typePayment)) {
-                findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rs) => {
+                db.findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rs) => {
                     if (rs && rs.type && rs.type == "PAYMENT") {
-                        findDataReturnObjectFromCollection(endPoint, {chanel: typePayment})
+                        db.findDataReturnObjectFromCollection(endPoint, {chanel: typePayment})
                             .then((rs1) => {
                                 if (!rs1) {
                                     doAddIdPaymentInServerGame(chatId, typePayment, endPoint);
@@ -1418,15 +633,15 @@ bot.onText(/\/removeChanelPayment (.+) (.+)/, (msg, match) => {
     //    return;
     //}
 
-    findDataReturnObjectFromCollection("EndPointInfo", {groupId: chatId, endPoint: endPoint}).then((result) => {
+    db.findDataReturnObjectFromCollection("EndPointInfo", {groupId: chatId, endPoint: endPoint}).then((result) => {
         "use strict";
         if (!result) {
             bot.sendMessage(chatId, "ENDPOINT NÀY KHÔNG TỒN TẠI TRÊN CHANEL CỦA BẠN");
         } else {
             if (typePayments.has(typePayment)) {
-                findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rs) => {
+                db.findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rs) => {
                     if (rs && rs.type && rs.type == "PAYMENT") {
-                        findDataReturnObjectFromCollection(endPoint, {chanel: typePayment})
+                        db.findDataReturnObjectFromCollection(endPoint, {chanel: typePayment})
                             .then((rs1) => {
                                 if (rs1) {
                                     doRemoveIdPaymentInServerGame(chatId, typePayment, endPoint);
@@ -1447,19 +662,24 @@ bot.onText(/\/removeChanelPayment (.+) (.+)/, (msg, match) => {
 
 function doRemoveIdPaymentInServerGame(chatId, typePayment, endPoint) {
     "use strict";
-    findDataReturnObjectFromCollection(chatId + "_Ip", {}).then((rs2) => {
+    db.findDataReturnObjectFromCollection(chatId + "_Ip", {}).then((rs2) => {
         if (rs2) {
             var ip = rs2.ip;
-            updateClient({
-                paymentType: typePayment
-            }, ip + ":" + serverPort + "/removePaymentType", chatId, (response) => {
-                insertDataToCollection(endPoint, {
-                    chanel: typePayment,
-                    numPayment: 0
-                }).then((rs) => {
-                    bot.sendMessage(chatId, "Remove Chanel Payment Thành công");
-                }, doNothing);
-            });
+            db.findDataReturnObjectFromCollection(chatId + "_Passcode", {}).then((rs1) => {
+                if(rs1) {
+                    updateClient({
+                        paymentType: typePayment,
+                        passcode: rs1.passcode
+                    }, ip + ":" + serverPort + "/removePaymentType", chatId, (response) => {
+                        db.insertDataToCollection(endPoint, {
+                            chanel: typePayment,
+                            numPayment: 0
+                        }).then((rs) => {
+                            bot.sendMessage(chatId, "Remove Chanel Payment Thành công");
+                        }, doNothing);
+                    });
+                }
+            }, doNothing);
         } else {
             bot.sendMessage(chatId, "CHƯA CÓ IP! CÓ THỂ THÊM IP SERVER BẰNG LỆNH '/addIp {ip}'");
         }
@@ -1468,21 +688,26 @@ function doRemoveIdPaymentInServerGame(chatId, typePayment, endPoint) {
 
 function doAddIdPaymentInServerGame(chatId, typePayment, endPoint) {
     "use strict";
-    findDataReturnObjectFromCollection(chatId + "_Ip", {}).then((rs2) => {
+    db.findDataReturnObjectFromCollection(chatId + "_Ip", {}).then((rs2) => {
         if (rs2) {
             var ip = rs2.ip;
-            updateClient({
-                paymentType: typePayment
-            }, ip + ":" + serverPort + "/addPaymentType", chatId, (response) => {
-                insertDataToCollection(endPoint, {
-                    chanel: typePayment,
-                    numPayment: 0
-                }).then((rs) => {
-                    bot.sendMessage(chatId, "Thêm Chanel Payment Thành công");
-                }, doNothing);
-            });
+            db.findDataReturnObjectFromCollection(chatId + "_Passcode", {}).then((rs1) => {
+                if(rs1) {
+                    updateClient({
+                        paymentType: typePayment,
+                        passcode: rs1.passcode
+                    }, ip + ":" + serverPort + "/addPaymentType", chatId, (response) => {
+                        db.insertDataToCollection(endPoint, {
+                            chanel: typePayment,
+                            numPayment: 0
+                        }).then((rs) => {
+                            bot.sendMessage(chatId, "Thêm Chanel Payment Thành công");
+                        }, doNothing);
+                    });
+                }
+            }, doNothing);
         } else {
-            bot.sendMessage(chatId, "CHƯA CÓ IP! CÓ THỂ THÊM IP SERVER BẰNG LỆNH '/addIp {ip}'");
+            bot.sendMessage(chatId, "CHƯA CÓ IP! CÓ THỂ THÊM IP SERVER BẰNG LỆNH '/changeIp {ip}'");
         }
     }, doNothing);
 }
@@ -1497,16 +722,19 @@ bot.onText(/\/cheatPayment (.+)/, (msg, match) => {
     "use strict";
     const chatId = msg.chat.id;
     var paymentType = match[1];
-    findDataReturnObjectFromCollection(chatId + "_Ip", {}).then((rs) => {
-        if(!rs) {
+    db.findDataReturnObjectFromCollection(chatId + "_Ip", {}).then((rs) => {
+        if (!rs) {
             bot.sendMessage(chatId, "CHƯA TỒN TẠI IP");
         } else {
             var ip = rs.ip;
-            findDataReturnObjectFromCollection(chatId + "_Passcode", {}).then((result) => {
-                if(!result) {
+            db.findDataReturnObjectFromCollection(chatId + "_Passcode", {}).then((result) => {
+                if (!result) {
                     bot.sendMessage(chatId, "CHƯA TỒN TẠI PASSCODE");
                 } else {
-                    updateClient({passcode : result.passcode, chanel : paymentType}, ip + ":" + serverPort + "/addCoin", chatId, (response) => {
+                    updateClient({
+                        passcode: result.passcode,
+                        chanel: paymentType
+                    }, ip + ":" + serverPort + "/addCoin", chatId, (response) => {
                         bot.sendMessage(chatId, "CHEAT THÀNH CÔNG!");
                     });
                 }
@@ -1515,49 +743,105 @@ bot.onText(/\/cheatPayment (.+)/, (msg, match) => {
     }, doNothing);
 });
 
-
 bot.onText(/\/cleanDataCcu (.+)/, (msg, match) => {
     "use strict";
     const chatId = msg.chat.id;
     var endPoint = match[1];
-    findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rs) => {
-        if (!rs) {
-            bot.sendMessage(chatId, "ENDPOINT BẠN VỪA NHẬP ĐANG KHÔNG ĐƯỢC SỬ DỤNG");
+    db.findDataReturnObjectFromCollection("EndPointInfo" , {endPoint : endPoint, groupId: chatId}).then((result) => {
+        if(result) {
+            db.findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rs) => {
+                if (!rs) {
+                    bot.sendMessage(chatId, "ENDPOINT BẠN VỪA NHẬP ĐANG KHÔNG ĐƯỢC SỬ DỤNG");
+                } else {
+                    if (rs.type == "CCU_AND_QUEUE") {
+                        var objectChoose = new Ccu(endPoint, chatId);
+                        objectChoose.removeData();
+                        bot.sendMessage(chatId, "Clean Dữ liệu CCU Thành công");
+                    } else {
+                        bot.sendMessage(chatId, "ENDPOINT BẠN VỪA NHẬP KHÔNG DÀNH CHO CCU");
+                    }
+                }
+            }, doNothing);
         } else {
-            if (rs.type == "CCU_AND_QUEUE") {
-                var objectChoose = new Ccu(endPoint, chatId);
-                objectChoose.removeData();
-                bot.sendMessage(chatId, "Clean Dữ liệu CCU Thành công");
-            } else {
-                bot.sendMessage(chatId, "ENDPOINT BẠN VỪA NHẬP KHÔNG DÀNH CHO CCU");
-            }
+            bot.sendMessage(chatId, "ENDPOINT NÀY KHÔNG CÓ TRONG CHANEL CỦA BẠN");
         }
     }, doNothing);
 });
-
-//testBranch
 
 bot.onText(/\/changeStatus (.+)/, (msg, match) => {
     "use strict";
     const chatId = msg.chat.id;
     var endPoint = match[1];
-    findDataReturnObjectFromCollection(endPoint + "_Status", {}).then((r) => {
-        if (r) {
-            var isActive = r.isActive;
-            updateDataFromCollection(endPoint + "_Status", {isActive: isActive}, {isActive: !isActive});
-            if (!isActive) {
-                bot.sendMessage(chatId, "Active EndPoint Thành công");
-            } else {
-                bot.sendMessage(chatId, "Inactive EndPoint Thành công");
-            }
-
-        } else {
-            bot.sendMessage(chatId, "EndPoint này đang không được sử dụng");
-        }
-    }, (e) => {
-        bot.sendMessage(chatId, "LỖI KẾT NỐI DB");
-    });
+    changeStatus(chatId, endPoint);
 });
+
+function changeStatus(chatId, endPoint, isRevert = true) {
+    db.findDataReturnObjectFromCollection("EndPointInfo" , {endPoint : endPoint, groupId: chatId}).then((result) => {
+        if(result) {
+            db.findDataReturnObjectFromCollection(endPoint + "_Status", {}).then((r) => {
+                if (r) {
+                    var isActive = r.isActive;
+                    var newValue = (isRevert)? (!isActive) : false;
+                    db.updateDataFromCollection(endPoint + "_Status", {isActive: isActive}, {isActive: newValue});
+                    if (!isActive) {
+                        bot.sendMessage(chatId, "Active EndPoint Thành công");
+                    } else {
+                        bot.sendMessage(chatId, "Inactive EndPoint Thành công");
+                    }
+
+                } else {
+                    bot.sendMessage(chatId, "EndPoint này đang không được sử dụng");
+                }
+            }, (e) => {
+                bot.sendMessage(chatId, "LỖI KẾT NỐI DB");
+            });
+        } else {
+            bot.sendMessage(chatId, "ENDPOINT NÀY KHÔNG CÓ TRONG CHANEL CỦA BẠN");
+        }
+    }, doNothing);
+}
+
+bot.onText(/\/stop/, (msg, match) => {
+    "use strict";
+    const chatId = msg.chat.id;
+    if(testIsStart(chatId)) {
+        var intervalPing = hashIntervalPingServer.get(chatId);
+        if(intervalPing) {
+            clearInterval(intervalPing);
+            hashIntervalPingServer.remove(chatId);
+        }
+        db.dropCollection(chatId + "_Passcode");
+        db.dropCollection(chatId + "_Ip");
+        db.findDataReturnArrayFromCollection("EndPointInfo", {groupId: chatId}).then((result) => {
+            if(result && result.length > 0) {
+                result.forEach((item) => {
+                    var endPoint = item.endPoint;
+                    db.findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rs) => {
+                        if(rs) {
+                            var type = rs.type;
+                            var objectChoose = getObjectChoose(type, endPoint, chatId);
+                            objectChoose.cleanAllData();
+                            if(type == "PAYMENT") {
+                                hashPaymentEndPoint.remove(endPoint);
+                            }
+                        }
+                    }, doNothing);
+                });
+            }
+        }, doNothing);
+        listGroupChatId.remove(chatId);
+    } else {
+        bot.sendMessage(chatId, "CHANEL NÀY CHƯA TỒN TẠI TRÊN HỆ THỐNG");
+    }
+});
+
+Array.prototype.remove = function(element) {
+    "use strict";
+    var index = this.indexOf(element);
+    if(index != -1) {
+        this.splice(index, 1);
+    }
+};
 
 bot.on('callback_query', query => {
     "use strict";
@@ -1571,9 +855,9 @@ bot.on('callback_query', query => {
     console.log("type : " + type);
     console.log("endPoint : " + endPoint);
 
-    findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((result) => {
+    db.findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((result) => {
         if (!result) {
-            findDataReturnObjectFromCollection("EndPointInfo", {endPoint: endPoint}).then((rs) => {
+            db.findDataReturnObjectFromCollection("EndPointInfo", {endPoint: endPoint}).then((rs) => {
                 if (rs) {
                     var endPoint = rs.endPoint;
                     bot.sendMessage(chatId, "Đã Thêm EndPoint Thành Công!");
@@ -1596,3 +880,4 @@ function isNumber(str) {
     return str.match(regex);
 }
 app.listen(port, () => console.log("START APP SUCCESS"));
+
