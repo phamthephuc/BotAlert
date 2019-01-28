@@ -17,13 +17,6 @@ module.exports = class Payment {
         this.functionInterval = null;
     }
 
-    //removeData() {
-    //    "use strict";
-    //    //db.dropCollection(this.endPoint);
-    //    //db.dropCollection(this.endPoint + "_Type");
-    //    //db.dropCollection(this.endPoint + "_Period");
-    //}
-
     getCrrTimeInMilis() {
         "use strict";
         return (new Date().getTime());
@@ -53,7 +46,7 @@ module.exports = class Payment {
                                 if (numPayment <= 0) {
                                     bot.sendMessage(this.chatId, "ĐÃ QUÁ LÂU MÀ CHƯA THẤY CÓ PAYMENT Ở CHANEL " + typePayments.get(item.chanel));
                                 }
-                                db.updateDataFromCollection(endPoint, {chanel: item.chanel}, {numPayment: 0});
+                                db.updateDataFromCollection(endPoint, {chanel: item.chanel}, {chanel: item.chanel, numPayment: 0});
                             })
                         }
                     }, doNothing);

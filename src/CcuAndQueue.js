@@ -66,4 +66,4 @@ module.exports = class CcuAndQueue {
         var endPoint = this.ccu.endPoint;
         this.doCheckAlertWithEndPoint(index, data, endPoint);
     }
-}
+};

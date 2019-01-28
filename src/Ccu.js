@@ -194,8 +194,6 @@ module.exports = class Ccu {
             return false;
         }
 
-
-
         this.checkNeedAlert(index, data, this.chatId, this.endPoint, dayOfWeek);
         return true;
     }
@@ -212,12 +210,6 @@ module.exports = class Ccu {
         "use strict";
         db.deleteDataFromCollection(this.endPoint, {});
         console.log("Remove Data Collection");
-        //db.dropCollection(this.endPoint);
-        //db.dropCollection(this.endPoint + "_Percent");
-        //db.dropCollection(this.endPoint + "_MaxTimesAlertContinuous");
-        //db.dropCollection(this.endPoint + "_TimeAlertContinuousWeek");
-        //db.dropCollection(this.endPoint + "_TimeAlertContinuousYesterday");
-        //db.dropCollection(this.endPoint + "_Type");
     }
 
     checkNeedAlert(index, data, chatId, endPoint, dayOfWeek) {

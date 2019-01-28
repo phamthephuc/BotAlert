@@ -9,8 +9,8 @@ const HashMap = require("hashmap");
 
 var db = require("./src/DBInteractive");
 const doNothing = require("./src/Util").doNothing;
-//const token = '666177464:AAG8mro3tNOX_6LbFTNRtwX35Y1QYOdDbC0';
-const token = '674200182:AAGdEA3ie3ZGbz2-UYsik7iVGL_bt2BusJw';
+const token = '666177464:AAG8mro3tNOX_6LbFTNRtwX35Y1QYOdDbC0';
+//const token = '674200182:AAGdEA3ie3ZGbz2-UYsik7iVGL_bt2BusJw';
 const bot = new TelegramBot(token, {polling: true});
 var typePayments = new HashMap();
 var csvPaymentTypePath = "./paymentType.csv";
@@ -42,7 +42,7 @@ const minDuration = 30;
 
 const serverPort = 10091;
 
-const durationPing = 10 * 1000;
+const defaultDurationCheckDie = 2 * 15 * 1000;
 
 var hashPaymentEndPoint = new HashMap();
 
@@ -94,8 +94,20 @@ db.findDataReturnObjectFromCollection("GroupChatInfo", {}).then((result) => {
                 "use strict";
                 db.findDataReturnObjectFromCollection(item + "_Ip", {}).then((result1) => {
                     if(result1) {
-                        var interval = setInterval(pingServer.bind(console, item), durationPing, durationPing);
-                        hashIntervalPingServer.set(item, interval);
+                        var crrTime = getCrrTimeInMilis();
+                        db.findDataReturnObjectFromCollection("LastTimeRequest", {groupId: item}).then((rst) => {
+                            if(rst) {
+                                var duration = rst.duration;
+                                db.updateDataFromCollection("LastTimeRequest", {groupId: item}, {groupId: item, duration: duration, lastTime : crrTime});
+                                var interval = setInterval(pingServer.bind(console, item), duration, duration);
+                                hashIntervalPingServer.set(item, interval);
+                            } else {
+                                db.insertDataToCollection("LastTimeRequest", {groupId: item, lastTime : crrTime, duration: defaultDurationCheckDie}).then(doNothing, doNothing);
+                                var interval = setInterval(pingServer.bind(console, item), defaultDurationCheckDie, defaultDurationCheckDie);
+                                hashIntervalPingServer.set(item, interval);
+                            }
+                        }, doNothing);
+
                     }
                 }, doNothing);
             });
@@ -111,25 +123,36 @@ db.findDataReturnObjectFromCollection("GroupChatInfo", {}).then((result) => {
 
 function pingServer(chatId) {
     "use strict";
-    db.findDataReturnObjectFromCollection(chatId + "_Ip", {}).then((rs) => {
-        if(rs && rs.ip) {
-            var ip = rs.ip;
-            db.findDataReturnObjectFromCollection(chatId + "_Passcode", {}).then((rs1) => {
-                if(rs1) {
-                    var passcode = rs1.passcode;
-                    updateClient({
-                        passcode: passcode
-                    }, ip + ":" + serverPort + "/ping", chatId, (response) => {
-                        "use strict";
-                        bot.sendMessage(chatId, "PING THÀNH CÔNG");
-                    });
-                } else {
-                    bot.sendMessage(chatId, "CHƯA TỒN TẠI PASSCODE")
-                }
-            }, doNothing);
-        } else {
-            bot.sendMessage(chatId, "CHƯA TỒN TẠI IP. CÓ THỂ THÊM BẰNG LỆNH '/changeIp ip'");
+    db.findDataReturnObjectFromCollection("LastTimeRequest", {groupId : chatId}).then((rs) => {
+        if(rs) {
+            var duration = rs.duration;
+            var crrTime = getCrrTimeInMilis();
+            var lastTimeCheck = rs.lastTime;
+            if(lastTimeCheck + duration < crrTime) {
+                bot.sendMessage(chatId, "SERVER ĐANG KHÔNG KHÔNG HOẠT ĐỘNG HOẶC CHƯA ĐƯỢC CONNECT VỚI BOT");
+            } else {
+                console.log("PING THÀNH CÔNG");
+            }
         }
+
+        //if(rs && rs.ip) {
+        //    var ip = rs.ip;
+        //    db.findDataReturnObjectFromCollection(chatId + "_Passcode", {}).then((rs1) => {
+        //        if(rs1) {
+        //            var passcode = rs1.passcode;
+        //            updateClient({
+        //                passcode: passcode
+        //            }, ip + ":" + serverPort + "/ping", chatId, (response) => {
+        //                "use strict";
+        //                bot.sendMessage(chatId, "PING THÀNH CÔNG");
+        //            });
+        //        } else {
+        //            bot.sendMessage(chatId, "CHƯA TỒN TẠI PASSCODE")
+        //        }
+        //    }, doNothing);
+        //} else {
+        //    bot.sendMessage(chatId, "CHƯA TỒN TẠI IP. CÓ THỂ THÊM BẰNG LỆNH '/changeIp ip'");
+        //}
     }, doNothing);
 }
 
@@ -179,6 +202,7 @@ function addEndPoint(endPoint, chatId, type) {
         if (type == "PAYMENT") {
             hashPaymentEndPoint.set(endPoint, objectChoose);
         }
+
         console.log("Add new endPoint : " + endPoint + "|" + type);
 
         app.post('/' + endPoint, (req, res) => {
@@ -194,6 +218,7 @@ function addEndPoint(endPoint, chatId, type) {
                 res.send(false);
                 return;
             }
+
             var data = req.body.data;
             var index = req.body.index;
 
@@ -201,7 +226,7 @@ function addEndPoint(endPoint, chatId, type) {
                 if (!rsMsg) {
                     db.insertDataToCollection(chatId + "_Ip", {ip: ipFormat}).then(doNothing, doNothing);
                     if(!hashIntervalPingServer.get(chatId)) {
-                        var interval = setInterval(pingServer.bind(console, chatId), durationPing, durationPing);
+                        var interval = setInterval(pingServer.bind(console, chatId), defaultDurationCheckDie, defaultDurationCheckDie);
                         hashIntervalPingServer.set(chatId, interval);
                     }
                 }
@@ -218,13 +243,24 @@ function addEndPoint(endPoint, chatId, type) {
                     db.insertDataToCollection(chatId + "_Passcode", {passcode: passcode}).then(doNothing, doNothing);
                     res.send(objectChoose.doCheckAlert(index, data));
                 }
-            }, (err) => {
-                db.insertDataToCollection(chatId + "_Passcode", {passcode: passcode}).then(doNothing, doNothing);
-                res.send(objectChoose.doCheckAlert(index, data));
-            });
+            }, doNothing);
 
+            var lastTimeHaveRequest = getCrrTimeInMilis();
+            db.findDataReturnObjectFromCollection("LastTimeRequest", {groupId : chatId}).then((result) => {
+                if(result) {
+                    var duration = result.duration;
+                    db.updateDataFromCollection("LastTimeRequest", {groupId: chatId}, {groupId : chatId, lastTime : lastTimeHaveRequest, duration : duration});
+                } else {
+                    db.insertDataToCollection("LastTimeRequest", {groupId : chatId, lastTime : lastTimeHaveRequest, duration : defaultDurationCheckDie});
+                }
+            }, doNothing);
         });
     }
+}
+
+function getCrrTimeInMilis() {
+    "use strict";
+    return (new Date().getTime());
 }
 
 function testIsStart(chatId) {
@@ -234,7 +270,7 @@ function testIsStart(chatId) {
 
 function startChanel(chatId) {
     "use strict";
-    if (!listGroupChatId.includes(chatId)) {
+    if (!testIsStart(chatId)) {
         listGroupChatId.push(chatId);
         db.updateDataFromCollection("GroupChatInfo", {}, {listGroupChatId: listGroupChatId});
         db.insertDataToCollection(chatId + "_Passcode", {passcode : md5(token)}).then(doNothing, doNothing);
@@ -290,10 +326,17 @@ bot.onText(/\/changeIp (.+)/, (msg, match) => {
             if (rs2) {
                 var ip = rs2.ip;
                 db.updateDataFromCollection(chatId + "_Ip", {ip: ip}, {ip: newIp});
+                if(hashIntervalPingServer.get(chatId)) {
+                    var oldInterval = hashIntervalPingServer.get(chatId);
+                    clearInterval(oldInterval);
+                    var interval = setInterval(pingServer.bind(console, chatId), defaultDurationCheckDie, defaultDurationCheckDie);
+                    hashIntervalPingServer.set(chatId, interval);
+                }
+
             } else {
                 db.insertDataToCollection(chatId + "_Ip", {ip: newIp}).then(doNothing, doNothing);
                 if(!hashIntervalPingServer.get(chatId)) {
-                    var interval = setInterval(pingServer.bind(console, chatId), durationPing, durationPing);
+                    var interval = setInterval(pingServer.bind(console, chatId), defaultDurationCheckDie, defaultDurationCheckDie);
                     hashIntervalPingServer.set(chatId, interval);
                 }
             }
@@ -671,12 +714,8 @@ function doRemoveIdPaymentInServerGame(chatId, typePayment, endPoint) {
                         paymentType: typePayment,
                         passcode: rs1.passcode
                     }, ip + ":" + serverPort + "/removePaymentType", chatId, (response) => {
-                        db.insertDataToCollection(endPoint, {
-                            chanel: typePayment,
-                            numPayment: 0
-                        }).then((rs) => {
-                            bot.sendMessage(chatId, "Remove Chanel Payment Thành công");
-                        }, doNothing);
+                        db.deleteDataFromCollection(endPoint, {chanel : typePayment});
+                        bot.sendMessage(chatId, "Remove Chanel Payment Thành công");
                     });
                 }
             }, doNothing);
@@ -783,12 +822,13 @@ function changeStatus(chatId, endPoint, isRevert = true) {
                     var isActive = r.isActive;
                     var newValue = (isRevert)? (!isActive) : false;
                     db.updateDataFromCollection(endPoint + "_Status", {isActive: isActive}, {isActive: newValue});
-                    if (!isActive) {
-                        bot.sendMessage(chatId, "Active EndPoint Thành công");
-                    } else {
-                        bot.sendMessage(chatId, "Inactive EndPoint Thành công");
+                    if(isRevert) {
+                        if (!isActive) {
+                            bot.sendMessage(chatId, "Active EndPoint Thành công");
+                        } else {
+                            bot.sendMessage(chatId, "Inactive EndPoint Thành công");
+                        }
                     }
-
                 } else {
                     bot.sendMessage(chatId, "EndPoint này đang không được sử dụng");
                 }
@@ -822,7 +862,11 @@ bot.onText(/\/stop/, (msg, match) => {
                             var objectChoose = getObjectChoose(type, endPoint, chatId);
                             objectChoose.cleanAllData();
                             if(type == "PAYMENT") {
-                                hashPaymentEndPoint.remove(endPoint);
+                                if(hashPaymentEndPoint.get(endPoint)) {
+                                    var payment = hashPaymentEndPoint.get(endPoint);
+                                    clearInterval(payment.seflInterval);
+                                    hashPaymentEndPoint.remove(endPoint);
+                                }
                             }
                         }
                     }, doNothing);
@@ -830,6 +874,7 @@ bot.onText(/\/stop/, (msg, match) => {
             }
         }, doNothing);
         listGroupChatId.remove(chatId);
+        db.updateDataFromCollection("GroupChatInfo", {}, {listGroupChatId: listGroupChatId});
     } else {
         bot.sendMessage(chatId, "CHANEL NÀY CHƯA TỒN TẠI TRÊN HỆ THỐNG");
     }
@@ -850,10 +895,6 @@ bot.on('callback_query', query => {
     var data = query.data.split(' ');
     var type = data[0];
     var endPoint = data[1];
-
-
-    console.log("type : " + type);
-    console.log("endPoint : " + endPoint);
 
     db.findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((result) => {
         if (!result) {

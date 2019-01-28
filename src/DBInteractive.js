@@ -159,19 +159,27 @@ function dropCollection(nameCollection) {
         findDataReturnObjectFromCollection(nameCollection, {}).then((result) => {
             if(result) {
                 var dbo = db.db(nameDB);
-                dbo.collection(nameCollection).drop(function (err, delOK) {
-                    if (err) throw err;
-                    if (delOK) console.log("Collection " + nameCollection + " deleted!");
-                    db.close();
-                });
-            } else {
-                insertManyDataToCollection(nameCollection , {test : "ac"}).then((rs) => {
-                    var dbo = db.db(nameDB);
+                try {
                     dbo.collection(nameCollection).drop(function (err, delOK) {
                         if (err) throw err;
                         if (delOK) console.log("Collection " + nameCollection + " deleted!");
                         db.close();
                     });
+                } catch(err) {
+                    console.log("HAVE SOME THING WRONG");
+                }
+            } else {
+                insertManyDataToCollection(nameCollection , {test : "ac"}).then((rs) => {
+                    var dbo = db.db(nameDB);
+                    try {
+                        dbo.collection(nameCollection).drop(function (err, delOK) {
+                            if (err) throw err;
+                            if (delOK) console.log("Collection " + nameCollection + " deleted!");
+                            db.close();
+                        });
+                    } catch(err) {
+                        console.log("HAVE SOME THING WRONG");
+                    }
                 }, doNothing);
             }
         }, doNothing);

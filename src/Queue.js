@@ -20,15 +20,6 @@ module.exports = class Queue {
         return (crrValue > oldValue || (crrValue == oldValue && crrValue > maxPermissionQueueSize));
     }
 
-    //removeData() {
-    //    "use strict";
-    //    db.dropCollection(this.endPoint);
-    //    db.dropCollection(this.endPoint + "_ExtensionQueue");
-    //    db.dropCollection(this.endPoint + "_OutGoingQueue");
-    //    db.dropCollection(this.endPoint + "_ExtensionQueue");
-    //    db.dropCollection(this.endPoint + "_Type");
-    //}
-
     initData(endPoint) {
         "use strict";
         db.findDataReturnObjectFromCollection(endPoint, {type: "SystemQueue"}).then((rs) => {
