@@ -1,5 +1,5 @@
 /**
- * Created by pc1 on 1/22/2019.
+ * Created by phucpt3 on 1/22/2019.
  */
 var db = require("./DBInteractive");
 const doNothing = require("./Util").doNothing;
@@ -26,16 +26,15 @@ module.exports = class Payment {
         "use strict";
         db.deleteDataFromCollection("EndPointInfo", {groupId: this.chatId, endPoint: this.endPoint});
         db.dropCollection(this.endPoint);
-        db.dropCollection(this.endPoint + "_Period");
-        db.dropCollection(this.endPoint + "_Status");
-        db.dropCollection(this.endPoint + "_Type");
+        db.deleteDataFromCollection("PeriodInfo", {endPoint: this.endPoint});
+        db.dropCollection("StatusInfo" , {endPoint: this.endPoint});
     }
 
     initData(endPoint) {
         "use strict";
         this.lastTimeCheck = this.getCrrTimeInMilis();
         this.functionInterval = function () {
-            db.findDataReturnObjectFromCollection(endPoint + "_Status", {}).then((result) => {
+            db.findDataReturnObjectFromCollection("StatusInfo", {endPoint: endPoint}).then((result) => {
                 if (!result || !result.isActive) {
                     console.log(endPoint + " ĐANG TRONG TRẠNG THÁI UNACTIVE");
                 } else {
@@ -65,15 +64,9 @@ module.exports = class Payment {
         //    }
         //}, doNothing);
 
-        db.findDataReturnObjectFromCollection(endPoint + "_Type", {}).then((rs) => {
-            if (!rs) {
-                db.insertDataToCollection(endPoint + "_Type", {type: "PAYMENT"}).then(doNothing, doNothing);
-            }
-        }, doNothing);
-
-        db.findDataReturnObjectFromCollection(endPoint + "_Status", {}).then((result) => {
+        db.findDataReturnObjectFromCollection("StatusInfo", {endPoint: endPoint}).then((result) => {
             if (!result) {
-                db.insertDataToCollection(endPoint + "_Status", {isActive: true}).then(doNothing, doNothing);
+                db.insertDataToCollection("StatusInfo", {endPoint: endPoint, isActive: true}).then(doNothing, doNothing);
             }
         }, doNothing);
 
@@ -81,12 +74,12 @@ module.exports = class Payment {
             if (!rsMsg || rsMsg.length == 0) {
                 bot.sendMessage(this.chatId, "HIỆN TẠI CHƯA CÓ LOẠI PAYMENT NÀO ĐƯỢC CHỌN ĐỂ ALERT, VUI LÒNG THÊM!");
             }
-            db.findDataReturnObjectFromCollection(endPoint + "_Period", {}).then((result) => {
+            db.findDataReturnObjectFromCollection("PeriodInfo", {endPoint: endPoint}).then((result) => {
                 if (result) {
                     var timeOut = result.period;
                     this.seflInterval = setInterval(this.functionInterval, timeOut, timeOut);
                 } else {
-                    db.insertDataToCollection(endPoint + "_Period", {period: defaultPeriod}).then((ok1) => {
+                    db.insertDataToCollection("PeriodInfo", {endPoint: endPoint, period: defaultPeriod}).then((ok1) => {
                         this.seflInterval = setInterval(this.functionInterval, defaultPeriod, defaultPeriod);
                     }, doNothing);
                 }
@@ -98,13 +91,13 @@ module.exports = class Payment {
     doChangePeriod(newDuration) {
         "use strict";
         clearInterval(this.seflInterval);
-        db.findDataReturnObjectFromCollection(this.endPoint + "_Period", {}).then((result) => {
+        db.findDataReturnObjectFromCollection("PeriodInfo", {endPoint: this.endPoint}).then((result) => {
             if (result && result.period) {
                 var period = result.period;
                 var ownTime = period - (this.getCrrTimeInMilis() - this.lastTimeCheck);
                 var functionTimeOut = function () {
                     this.functionInterval();
-                    db.updateDataFromCollection(this.endPoint + "_Period", {}, {period: newDuration});
+                    db.updateDataFromCollection("PeriodInfo", {endPoint: this.endPoint}, {period: newDuration});
                     setInterval(this.functionInterval, newDuration, newDuration);
                 }.bind(this);
                 setTimeout(functionTimeOut, ownTime);
@@ -126,4 +119,4 @@ module.exports = class Payment {
         return true;
     }
 
-}
+};

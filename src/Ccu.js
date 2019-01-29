@@ -1,5 +1,5 @@
 /**
- * Created by pc1 on 1/22/2019.
+ * Created by phucpt3 on 1/22/2019.
  */
 var db = require("./DBInteractive");
 const doNothing = require("./Util").doNothing;
@@ -19,41 +19,35 @@ module.exports = class Ccu {
     initData(endPoint) {
         "use strict";
 
-        db.findDataReturnObjectFromCollection(endPoint + "_TimeAlertContinuousWeek", {}).then((result) => {
+        db.findDataReturnObjectFromCollection("TimeAlertContinuousWeekInfo", {endPoint: endPoint}).then((result) => {
             if (!result) {
-                db.insertDataToCollection(endPoint + "_TimeAlertContinuousWeek", {timesAlert: 0}).then(doNothing, doNothing);
+                db.insertDataToCollection("TimeAlertContinuousWeekInfo", {endPoint: endPoint, timesAlert: 0}).then(doNothing, doNothing);
             }
         }, doNothing);
 
-        db.findDataReturnObjectFromCollection(endPoint + "_TimeAlertContinuousYesterday", {}).then((result) => {
+        db.findDataReturnObjectFromCollection("TimeAlertContinuousYesterdayInfo", {endPoint: endPoint}).then((result) => {
             if (!result) {
-                db.insertDataToCollection(endPoint + "_TimeAlertContinuousYesterday", {timesAlert: 0}).then(doNothing, doNothing);
+                db.insertDataToCollection("TimeAlertContinuousYesterdayInfo", {endPoint: endPoint, timesAlert: 0}).then(doNothing, doNothing);
             }
         }, doNothing);
 
-        //db.findDataReturnObjectFromCollection(endPoint + "_TYPE", {}).then((result) => {
+        db.findDataReturnObjectFromCollection("PercentInfo", {endPoint: endPoint}).then((result) => {
+            if (!result) {
+                db.insertDataToCollection("PercentInfo", {endPoint: endPoint, percent: defaultPercent}).then(doNothing, doNothing);
+            }
+        }, doNothing);
+
+        db.findDataReturnObjectFromCollection("MaxTimesAlertContinuousInfo", {endPoint: endPoint}).then((result) => {
+            if (!result) {
+                db.insertDataToCollection("MaxTimesAlertContinuousInfo", {endPoint: endPoint, maxTimeAlert: maxTimeAlert}).then(doNothing, doNothing);
+            }
+        }, doNothing);
+
+        //db.findDataReturnObjectFromCollection(endPoint, {}).then((result) => {
         //    if (!result) {
-        //        db.insertDataToCollection(endPoint + "_TYPE", {type: "CCU"}).then(doNothing, doNothing);
+        //        this.fakeDataCCU();
         //    }
         //}, doNothing);
-
-        db.findDataReturnObjectFromCollection(endPoint + "_Percent", {}).then((result) => {
-            if (!result) {
-                db.insertDataToCollection(endPoint + "_Percent", {percent: defaultPercent}).then(doNothing, doNothing);
-            }
-        }, doNothing);
-
-        db.findDataReturnObjectFromCollection(endPoint + "_MaxTimesAlertContinuous", {}).then((result) => {
-            if (!result) {
-                db.insertDataToCollection(endPoint + "_MaxTimesAlertContinuous", {maxTimeAlert: maxTimeAlert}).then(doNothing, doNothing);
-            }
-        }, doNothing);
-
-        db.findDataReturnObjectFromCollection(endPoint, {}).then((result) => {
-            if (!result) {
-                this.fakeDataCCU();
-            }
-        }, doNothing);
     }
 
     fakeDataCCU() {
@@ -167,11 +161,10 @@ module.exports = class Ccu {
         "use strict";
         db.deleteDataFromCollection("EndPointInfo", {groupId: this.chatId, endPoint: this.endPoint});
         db.dropCollection(this.endPoint);
-        db.dropCollection(this.endPoint + "_Percent");
-        db.dropCollection(this.endPoint + "_Type");
-        db.dropCollection(this.endPoint + "_MaxTimesAlertContinuous");
-        db.dropCollection(this.endPoint + "_TimeAlertContinuousWeek");
-        db.dropCollection(this.endPoint + "_TimeAlertContinuousYesterday");
+        db.deleteDataFromCollection("PercentInfo", {endPoint: this.endPoint});
+        db.deleteDataFromCollection("MaxTimesAlertContinuousInfo", {endPoint: this.endPoint});
+        db.deleteDataFromCollection("TimeAlertContinuousWeekInfo", {endPoint: this.endPoint});
+        db.deleteDataFromCollection("TimeAlertContinuousYesterdayInfo", {endPoint: this.endPoint});
     }
 
     checkConditionAlert(crrValue, oldValue, coefficient) {
@@ -225,38 +218,37 @@ module.exports = class Ccu {
 
                     if (num > 0) {
                         var averageData = parseInt(sum / num);
-                        db.findDataReturnObjectFromCollection(endPoint + "_Percent", {}).then((rsMsg) => {
+                        db.findDataReturnObjectFromCollection("PercentInfo", {endPoint: endPoint}).then((rsMsg) => {
                             var percent = rsMsg.percent;
                             console.log("PERCENT : " + percent);
                             if (this.checkConditionAlert(data, averageData, percent)) {
-                                db.findDataReturnObjectFromCollection(endPoint + "_TimeAlertContinuousWeek", {}).then((rs) => {
+                                db.findDataReturnObjectFromCollection("TimeAlertContinuousWeekInfo", {endPoint: endPoint}).then((rs) => {
                                     if (rs) {
                                         var timesAlert = rs.timesAlert;
-                                        db.findDataReturnObjectFromCollection(endPoint + "_MaxTimesAlertContinuous", {}).then((result) => {
+                                        db.findDataReturnObjectFromCollection("MaxTimesAlertContinuousInfo", {endPoint: endPoint}).then((result) => {
                                             if (result) {
                                                 var maxTimeAlertOfEndPoint = result.maxTimeAlert;
                                                 if (timesAlert < maxTimeAlertOfEndPoint) {
                                                     bot.sendMessage(chatId, this.stringAlert(data, averageData, true));
                                                     timesAlert += 1;
-                                                    db.updateDataFromCollection(this.endPoint + "_TimeAlertContinuousWeek", {}, {timesAlert: timesAlert});
+                                                    db.updateDataFromCollection("TimeAlertContinuousWeekInfo", {endPoint: endPoint}, {timesAlert: timesAlert});
                                                 }
                                             } else {
                                                 if (timesAlert < maxTimeAlert) {
                                                     bot.sendMessage(chatId, this.stringAlert(data, averageData, true));
                                                     timesAlert += 1;
-                                                    db.updateDataFromCollection(this.endPoint + "_TimeAlertContinuousWeek", {}, {timesAlert: timesAlert});
-                                                    db.insertDataToCollection(endPoint + "_MaxTimesAlertContinuous", {maxTimeAlert: maxTimeAlert}).then(doNothing, doNothing);
+                                                    db.updateDataFromCollection("TimeAlertContinuousWeekInfo", {endPoint: endPoint}, {timesAlert: timesAlert});
+                                                    db.insertDataToCollection("MaxTimesAlertContinuousInfo", {endPoint: endPoint, maxTimeAlert: maxTimeAlert}).then(doNothing, doNothing);
                                                 }
                                             }
                                         }, doNothing);
-
                                     }
                                 }, (err) => {
                                     console.log("get TIME ALERT WEEK FAIL!");
                                 });
 
                             } else {
-                                db.updateDataFromCollection(endPoint + "_TimeAlertContinuousWeek", {}, {timesAlert: 0});
+                                db.updateDataFromCollection("TimeAlertContinuousWeekInfo", {endPoint: endPoint}, {timesAlert: 0});
                             }
                         }, doNothing);
                     }
@@ -286,26 +278,26 @@ module.exports = class Ccu {
                 var dataYesterday = result2.data;
                 console.log("ccu yesterday :" + JSON.stringify(dataYesterday));
                 if (dataYesterday) {
-                    db.findDataReturnObjectFromCollection(endPoint + "_Percent", {}).then((rsMsg) => {
+                    db.findDataReturnObjectFromCollection("PercentInfo", {endPoint: endPoint}).then((rsMsg) => {
                         var percent = rsMsg.percent;
                         if (this.checkConditionAlert(data, dataYesterday, percent)) {
-                            db.findDataReturnObjectFromCollection(endPoint + "_TimeAlertContinuousYesterday", {}).then((rs) => {
+                            db.findDataReturnObjectFromCollection("TimeAlertContinuousYesterdayInfo", {endPoint: endPoint}).then((rs) => {
                                 if (rs) {
                                     var timesAlert = rs.timesAlert;
-                                    db.findDataReturnObjectFromCollection(endPoint + "_MaxTimesAlertContinuous", {}).then((result) => {
+                                    db.findDataReturnObjectFromCollection("MaxTimesAlertContinuousInfo", {endPoint: endPoint}).then((result) => {
                                         if (result) {
                                             var maxTimeAlertOfEndPoint = result.maxTimeAlert;
                                             if (timesAlert < maxTimeAlertOfEndPoint) {
                                                 bot.sendMessage(chatId, this.stringAlert(data, dataYesterday, false));
                                                 timesAlert += 1;
-                                                db.updateDataFromCollection(this.endPoint + "_TimeAlertContinuousYesterday", {}, {timesAlert: timesAlert});
+                                                db.updateDataFromCollection("TimeAlertContinuousYesterdayInfo", {endPoint: endPoint}, {timesAlert: timesAlert});
                                             }
                                         } else {
                                             if (timesAlert < maxTimeAlert) {
                                                 bot.sendMessage(chatId, this.stringAlert(data, dataYesterday, false));
                                                 timesAlert += 1;
-                                                db.updateDataFromCollection(this.endPoint + "_TimeAlertContinuousYesterday", {}, {timesAlert: timesAlert});
-                                                db.insertDataToCollection(endPoint + "_MaxTimesAlertContinuous", {maxTimeAlert: maxTimeAlert}).then(doNothing, doNothing);
+                                                db.updateDataFromCollection("TimeAlertContinuousYesterdayInfo", {endPoint: endPoint}, {timesAlert: timesAlert});
+                                                db.insertDataToCollection("MaxTimesAlertContinuousInfo", {endPoint: endPoint, maxTimeAlert: maxTimeAlert}).then(doNothing, doNothing);
                                             }
                                         }
                                     }, doNothing);
@@ -315,7 +307,7 @@ module.exports = class Ccu {
                             });
 
                         } else {
-                            db.updateDataFromCollection(endPoint + "_TimeAlertContinuousYesterday", {}, {timesAlert: 0});
+                            db.updateDataFromCollection("TimeAlertContinuousYesterdayInfo", {endPoint: endPoint}, {timesAlert: 0});
                         }
                     }, doNothing);
                 }
