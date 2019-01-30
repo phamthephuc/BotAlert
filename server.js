@@ -88,39 +88,21 @@ db.findDataReturnArrayFromCollection("GroupChatInfo", {}).then((result) => {
             var groupId = itemChatId.groupId;
             var managerChatId = itemChatId.managerChatId;
             hashGroupChatId.set(groupId, managerChatId);
-            db.findDataReturnObjectFromCollection("IpInfo", {groupId: groupId}).then((result1) => {
-                if (result1) {
-                    var crrTime = getCrrTimeInMilis();
-                    db.findDataReturnObjectFromCollection("LastTimeRequest", {groupId: groupId}).then((rst) => {
-                        if (rst) {
-                            var duration = rst.duration;
-                            db.updateDataFromCollection("LastTimeRequest", {groupId: groupId}, {
-                                groupId: groupId,
-                                duration: duration,
-                                lastTime: crrTime
-                            });
-                            var interval = setInterval(pingServer.bind(console, groupId), duration, duration);
-                            hashIntervalPingServer.set(groupId, interval);
-                        } else {
-                            db.insertDataToCollection("LastTimeRequest", {
-                                groupId: groupId,
-                                lastTime: crrTime,
-                                duration: a
-                            }).then(doNothing, doNothing);
-                            var interval = setInterval(pingServer.bind(console, groupId), defaultDurationCheckDie, defaultDurationCheckDie);
-                            hashIntervalPingServer.set(groupId, interval);
-                        }
-                    }, doNothing);
-                }
-            }, doNothing);
+            var duration = itemChatId.duration;
+            var crrTime = getCrrTimeInMilis();
+            db.updateDataFromCollection("GroupChatInfo", {groupId: groupId}, {
+                lastTime: crrTime
+            });
+            var interval = setInterval(pingServer.bind(console, groupId), duration, duration);
+            hashIntervalPingServer.set(groupId, interval);
         });
     }
 }, doNothing);
 
 function pingServer(chatId) {
     "use strict";
-    db.findDataReturnObjectFromCollection("LastTimeRequest", {groupId: chatId}).then((rs) => {
-        if (rs) {
+    db.findDataReturnObjectFromCollection("GroupChatInfo", {groupId: chatId}).then((rs) => {
+        if (rs && rs.duration) {
             var duration = rs.duration;
             var crrTime = getCrrTimeInMilis();
             var lastTimeCheck = rs.lastTime;
@@ -182,9 +164,7 @@ function addEndPoint(endPoint, chatId, type) {
             var ip = req.ip || req.connection.remoteAddress || req.socket.remoteAddress || req.connection.sokect.remoteAddress;
 
             var ipFormat = getIpWithNormalFormat(ip);
-
             var passcode = req.body.passcode;
-
             if (!passcode && !ipFormat) {
                 res.send(false);
                 return;
@@ -193,54 +173,24 @@ function addEndPoint(endPoint, chatId, type) {
             var data = req.body.data;
             var index = req.body.index;
 
-            db.findDataReturnObjectFromCollection("IpInfo", {groupId: chatId}).then((rsMsg) => {
-                if (!rsMsg) {
-                    db.insertDataToCollection("IpInfo", {ip: ipFormat, groupId: chatId}).then(doNothing, doNothing);
-                    if (!hashIntervalPingServer.get(chatId)) {
-                        db.findDataReturnObjectFromCollection("LastTimeRequest", {groupId: chatId}).then((rs) => {
-                            if(rs) {
-                                var duration = rs.duration;
-                                var interval = setInterval(pingServer.bind(console, chatId), duration, duration);
-                                hashIntervalPingServer.set(chatId, interval);
-                            } else {
-                                var interval = setInterval(pingServer.bind(console, chatId), defaultDurationCheckDie, defaultDurationCheckDie);
-                                hashIntervalPingServer.set(chatId, interval);
-                            }
-                        }, doNothing);
-                    }
-                }
-            }, doNothing);
-
-            db.findDataReturnObjectFromCollection("PasscodeInfo", {groupId: chatId}).then((rs) => {
-                if (rs) {
-                    if (rs.passcode != passcode) {
+            db.findDataReturnObjectFromCollection("GroupChatInfo", {groupId: chatId}).then((result) => {
+                if(result) {
+                    var passcodeResult = result.passcode;
+                    if(passcodeResult && passcodeResult != passcode) {
                         res.send(false);
                     } else {
+                        var lastTimeCheckDieServer = getCrrTimeInMilis();
+                        var oldIp = result.ip;
+                        if(!oldIp) {
+                            db.updateDataFromCollection("GroupChatInfo", {groupId: chatId}, {ip: ipFormat, lastTime: lastTimeCheckDieServer});
+                        } else {
+                            db.updateDataFromCollection("GroupChatInfo", {groupId: chatId}, {lastTime: lastTimeCheckDieServer});
+                        }
                         res.send(objectChoose.doCheckAlert(index, data));
                     }
-                } else {
-                    db.insertDataToCollection("PasscodeInfo", {passcode: passcode, groupId: chatId}).then(doNothing, doNothing);
-                    res.send(objectChoose.doCheckAlert(index, data));
                 }
             }, doNothing);
 
-            var lastTimeHaveRequest = getCrrTimeInMilis();
-            db.findDataReturnObjectFromCollection("LastTimeRequest", {groupId: chatId}).then((result) => {
-                if (result) {
-                    var duration = result.duration;
-                    db.updateDataFromCollection("LastTimeRequest", {groupId: chatId}, {
-                        groupId: chatId,
-                        lastTime: lastTimeHaveRequest,
-                        duration: duration
-                    });
-                } else {
-                    db.insertDataToCollection("LastTimeRequest", {
-                        groupId: chatId,
-                        lastTime: lastTimeHaveRequest,
-                        duration: defaultDurationCheckDie
-                    });
-                }
-            }, doNothing);
         });
     }
 }
@@ -252,15 +202,28 @@ function getCrrTimeInMilis() {
 
 function testIsStart(chatId) {
     "use strict";
-    return hashGroupChatId.has(chatId);
+    if (!hashGroupChatId.has(chatId)) {
+        bot.sendMessage(chatId, "GROUP CHAT CỦA BẠN KHÔNG CÓ TRÊN HỆ THỐNG");
+        return false;
+    }
+    return true;
+}
+
+function checkIsStartAndManager(chatId, fromId) {
+    "use strict";
+    if(testIsStart(chatId)) {
+        return testIsManager(chatId, fromId);
+    }
+    return false;
 }
 
 function startChanel(chatId, managerChatId) {
     "use strict";
-    if (!testIsStart(chatId)) {
+    if (!hashGroupChatId.has(chatId)) {
         hashGroupChatId.set(chatId, managerChatId);
-        db.insertDataToCollection("GroupChatInfo", {groupId: chatId, managerChatId: managerChatId});
-        db.insertDataToCollection("PasscodeInfo", {passcode: md5(token), groupId: chatId}).then(doNothing, doNothing);
+        var intervalPing = setInterval(pingServer.bind(console, chatId), defaultDurationCheckDie, defaultDurationCheckDie);
+        hashIntervalPingServer.set(intervalPing);
+        db.insertDataToCollection("GroupChatInfo", {groupId: chatId, managerChatId: managerChatId, passcode: md5(token), duration: defaultDurationCheckDie, lastTime: getCrrTimeInMilis()});
         return true;
     }
     return false;
@@ -270,93 +233,56 @@ bot.onText(/\/changePasscode (.+)/, (msg, match) => {
     const chatId = msg.chat.id;
     const fromId = msg.from.id;
 
-    if(!testIsManager(chatId, fromId)) {
-        return;
-    }
-
     var newPasscode = match[1];
     newPasscode = md5(newPasscode);
 
-    if (testIsStart(chatId)) {
-        db.findDataReturnObjectFromCollection("IpInfo", {groupId: chatId}).then((rs2) => {
-            if (rs2) {
-                var ip = rs2.ip;
-                db.findDataReturnObjectFromCollection("PasscodeInfo", {groupId: chatId}).then((rs3) => {
-                    if (rs3) {
-                        var passcode = rs3.passcode;
-                        updateClient({
-                            passcode: passcode,
-                            newPasscode: newPasscode
-                        }, ip + ":" + serverPort + "/passcode", chatId, (response) => {
-                            "use strict";
-                            db.updateDataFromCollection("PasscodeInfo", {groupId: chatId}, {groupId: chatId, passcode: newPasscode});
-                            bot.sendMessage(chatId, "Cập nhật Passcode thành công");
-                        });
-                    } else {
-                        bot.sendMessage(chatId, "CHƯA NHẬN DIỆN ĐƯỢC SERVER");
-                    }
-                }, doNothing);
-            } else {
-                bot.sendMessage(chatId, "CHƯA CÓ IP! CÓ THỂ THÊM IP SERVER BẰNG LỆNH '/addIp {ip}'");
-            }
-        }, doNothing);
-    } else {
-        bot.sendMessage(chatId, "KÊNH NÀY HIỆN TẠI CHƯA TỒN TẠI TRÊN HỆ THỐNG");
+    if(!checkIsStartAndManager(chatId, fromId)) {
+        return;
     }
+
+    db.findDataReturnObjectFromCollection("GroupChatInfo", {groupId: chatId}).then((result) => {
+        if (result.ip) {
+            var ip = result.ip;
+            var passcode = result.passcode;
+            updateClient({
+                passcode: passcode,
+                newPasscode: newPasscode
+            }, ip + ":" + serverPort + "/passcode", chatId, (response) => {
+                "use strict";
+                db.updateDataFromCollection("GroupChatInfo", {groupId: chatId}, {passcode: newPasscode});
+                bot.sendMessage(chatId, "Cập nhật Passcode thành công");
+            });
+        } else {
+            bot.sendMessage(chatId, "CHƯA CÓ IP SERVER! CÓ THỂ THÊM IP SERVER BẰNG LỆNH '/addIp {ip}'");
+        }
+    }, doNothing);
 });
 
 bot.onText(/\/changeIp (.+)/, (msg, match) => {
     const chatId = msg.chat.id;
     const fromId = msg.from.id;
 
-    if(!testIsManager(chatId, fromId)) {
+    if(!checkIsStartAndManager(chatId, fromId)) {
         return;
     }
-
     var newIp = match[1];
     newIp = getIpWithNormalFormat(newIp);
     if (newIp == null) {
         bot.sendMessage(chatId, "IP BẠN NHẬP KHÔNG ĐÚNG ĐỊNH DẠNG");
         return;
     }
-
-    if (testIsStart(chatId)) {
-        db.findDataReturnObjectFromCollection("IpInfo", {groupId: chatId}).then((rs2) => {
-            if (rs2) {
-                var ip = rs2.ip;
-                db.updateDataFromCollection("IpInfo", {ip: ip, groupId: chatId}, {ip: newIp, groupId: chatId});
-                if (hashIntervalPingServer.get(chatId)) {
-                    var oldInterval = hashIntervalPingServer.get(chatId);
-                    clearInterval(oldInterval);
-                    var interval = setInterval(pingServer.bind(console, chatId), defaultDurationCheckDie, defaultDurationCheckDie);
-                    hashIntervalPingServer.set(chatId, interval);
-                }
-
-            } else {
-                db.insertDataToCollection("IpInfo", {ip: newIp, groupId: chatId}).then(doNothing, doNothing);
-                if (!hashIntervalPingServer.get(chatId)) {
-                    var interval = setInterval(pingServer.bind(console, chatId), defaultDurationCheckDie, defaultDurationCheckDie);
-                    hashIntervalPingServer.set(chatId, interval);
-                }
-            }
-            bot.sendMessage(chatId, "THAY ĐỔI IP SERVER GAME THÀNH CÔNG");
-        }, doNothing);
-    } else {
-        bot.sendMessage(chatId, "KÊNH NÀY HIỆN TẠI CHƯA TỒN TẠI TRÊN HỆ THỐNG");
-    }
-
+    db.updateDataFromCollection("GroupChatInfo", {groupId: chatId}, {ip: newIp});
+    bot.sendMessage(chatId, "Cập nhật Ip Thành Công");
 });
 
 bot.onText(/\/changePeriod (.+) (.+)/, (msg, match) => {
     const chatId = msg.chat.id;
     const fromId = msg.chat.id;
 
-    if(!testIsManager(chatId, fromId)) {
+    if(!checkIsStartAndManager(chatId, fromId)) {
         return;
     }
-
     var newValueDuration = match[2];
-
     console.log(newValueDuration);
     try {
         newValueDuration = parseInt(newValueDuration);
@@ -364,12 +290,10 @@ bot.onText(/\/changePeriod (.+) (.+)/, (msg, match) => {
         bot.sendMessage(chatId, "GỬI KHÔNG ĐÚNG ĐỊNH DẠNG");
         return;
     }
-
     if (newValueDuration % minDuration != 0 || newValueDuration <= 0) {
         bot.sendMessage(chatId, "PERIOD phải là số chia hết cho " + minDuration + "(s)");
         return;
     }
-
     var endPoint = match[1];
 
     db.findDataReturnObjectFromCollection("EndPointInfo", {groupId: chatId, endPoint: endPoint}).then((rsMessage) => {
@@ -378,42 +302,35 @@ bot.onText(/\/changePeriod (.+) (.+)/, (msg, match) => {
             var type = rsMessage.type;
             switch (type) {
                 case "CCU_AND_QUEUE":
-                    db.findDataReturnObjectFromCollection("IpInfo", {groupId: chatId}).then((rs2) => {
-                        if (rs2) {
+                    db.findDataReturnObjectFromCollection("GroupChatInfo", {groupId: chatId}).then((rs2) => {
+                        if (rs2.ip) {
                             var ip = rs2.ip;
-                            db.findDataReturnObjectFromCollection("PasscodeInfo", {groupId: chatId}).then((rs3) => {
-                                if (rs3) {
-                                    var passcode = rs3.passcode;
-                                    updateClient({
-                                        passcode: passcode,
-                                        duration: newValueDuration
-                                    }, ip + ":" + serverPort + "/duration", chatId, (response) => {
-                                        bot.sendMessage(chatId, "Cập nhật Period Thành công");
-                                        var intervalPing = hashIntervalPingServer.get(chatId);
-                                        clearInterval(intervalPing);
-                                        hashIntervalPingServer.remove(intervalPing);
-                                        intervalPing = setInterval(pingServer.bind(console, chatId), 2000 * newValueDuration, 2000 * newValueDuration);
-                                        hashIntervalPingServer.set(chatId, intervalPing);
-                                        db.updateDataFromCollection("LastTimeRequest", {groupId: chatId}, {duration: 2000 * newValueDuration});
-                                    });
-                                } else {
-                                    bot.sendMessage(chatId, "CHƯA NHẬN DIỆN ĐƯỢC SERVER");
-                                }
-                            }, doNothing);
+                            if (rs2.passcode) {
+                                var passcode = rs2.passcode;
+                                updateClient({
+                                    passcode: passcode,
+                                    duration: newValueDuration
+                                }, ip + ":" + serverPort + "/duration", chatId, (response) => {
+                                    bot.sendMessage(chatId, "Cập nhật Period Thành công");
+                                    var intervalPing = hashIntervalPingServer.get(chatId);
+                                    clearInterval(intervalPing);
+                                    hashIntervalPingServer.remove(intervalPing);
+                                    intervalPing = setInterval(pingServer.bind(console, chatId), 2000 * newValueDuration, 2000 * newValueDuration);
+                                    hashIntervalPingServer.set(chatId, intervalPing);
+                                    db.updateDataFromCollection("GroupChatInfo", {groupId: chatId}, {duration: 2000 * newValueDuration, lastTime: getCrrTimeInMilis()});
+                                });
+                            } else {
+                                bot.sendMessage(chatId, "CHƯA NHẬN DIỆN ĐƯỢC SERVER");
+                            }
                         } else {
                             bot.sendMessage(chatId, "CHƯA CÓ IP");
                         }
                     }, doNothing);
                     break;
                 case "PAYMENT":
-                    db.findDataReturnObjectFromCollection("PeriodInfo", {endPoint: endPoint}).then((rs) => {
-                        "use strict";
-                        if (rs) {
-                            var payment = hashPaymentEndPoint.get(endPoint);
-                            payment.doChangePeriod(newValueDuration * 1000);
-                            bot.sendMessage(chatId, "Cập nhật Period Thành công")
-                        }
-                    }, doNothing);
+                    var payment = hashPaymentEndPoint.get(endPoint);
+                    payment.doChangePeriod(newValueDuration * 1000);
+                    bot.sendMessage(chatId, "Cập nhật Period Thành công")
                     break;
             }
         } else {
@@ -426,7 +343,7 @@ bot.onText(/\/changePercent (.+) (.+)/, (msg, match) => {
     const chatId = msg.chat.id;
     const fromId = msg.from.id;
 
-    if(!testIsManager(chatId, fromId)) {
+    if(!checkIsStartAndManager(chatId, fromId)) {
         return;
     }
 
@@ -452,7 +369,7 @@ bot.onText(/\/changePercent (.+) (.+)/, (msg, match) => {
             var type = rsMessage.type;
             switch (type) {
                 case "CCU_AND_QUEUE":
-                    db.updateDataFromCollection("PercentInfo", {endPoint: endPoint}, {percent: newValue});
+                    db.updateDataFromCollection("EndPointInfo", {endPoint: endPoint}, {percent: newValue});
                     bot.sendMessage(chatId, "THAY ĐỔI THÀNH CÔNG!");
                     break;
                 default :
@@ -465,10 +382,10 @@ bot.onText(/\/changePercent (.+) (.+)/, (msg, match) => {
     }, doNothing);
 });
 
-bot.onText(/\/changeMaxTimesContiniousAlert (.+) (.+)/, (msg, match) => {
+bot.onText(/\/changeMTAC (.+) (.+)/, (msg, match) => {
     const chatId = msg.chat.id;
     const fromId = msg.from.id;
-    if(!testIsManager(chatId, fromId)) {
+    if(!checkIsStartAndManager(chatId, fromId)) {
         return;
     }
     var newValue = match[2];
@@ -486,13 +403,13 @@ bot.onText(/\/changeMaxTimesContiniousAlert (.+) (.+)/, (msg, match) => {
     }
     var endPoint = match[1];
 
-    db.findDataReturnObjectFromCollection("EndPointInfo", {groupId: chatId, endPoint: endPoint}).then((rsMessage) => {
+    db.findDataReturnObjectFromCollection("EndPointInfo", {endPoint: endPoint}).then((rsMessage) => {
         "use strict";
         if (rsMessage) {
             var type = rsMessage.type;
             switch (type) {
                 case "CCU_AND_QUEUE":
-                    db.updateDataFromCollection("MaxTimesAlertContinuousInfo", {endPoint: endPoint}, {maxTimeAlert: newValue});
+                    db.updateDataFromCollection("EndPointInfo", {endPoint: endPoint}, {MaxTimesAlertContinuous: newValue});
                     bot.sendMessage(chatId, "THAY ĐỔI THÀNH CÔNG!");
                     break;
                 default :
@@ -520,7 +437,7 @@ function testIsManager(chatId, fromId) {
     } else {
         try {
             bot.sendMessage(chatId, "BẠN KHÔNG CÓ QUYỀN QUẢN TRỊ");
-            bot.sendMessage(hashGroupChatId.get(chatId), "CÓ NGƯỜI MUỐN THAY ĐỔI TRÊN GROUP BẠN QUẢN TRỊ");
+            bot.sendMessage(hashGroupChatId.get(chatId), "CÓ NGƯỜI MUỐN THAY ĐỔI CÁC THÔNG SỐ VỀ BOT TRÊN GROUP BẠN QUẢN TRỊ");
         } catch (err) {
         }
         return false;
@@ -531,41 +448,35 @@ bot.onText(/\/listEndPoint/, (msg) => {
     const chatId = msg.chat.id;
     const fromId = msg.from.id;
 
-    if (!testIsStart(chatId)) {
-        bot.sendMessage(chatId, "GROUP CỦA BẠN CHƯA KÍCH HOẠT BOT");
-        return;
-    }
-
-    if(!testIsManager(chatId, fromId)) {
+    if(!checkIsStartAndManager(chatId, fromId)) {
         return;
     }
 
     db.findDataReturnArrayFromCollection("EndPointInfo", {groupId: chatId}).then((rs) => {
         "use strict";
-        if (rs.length > 0) {
+        if (rs && rs.length > 0) {
             rs.forEach((item) => {
                 var result = "";
                 var endPoint = item.endPoint;
                 result += endPoint;
                 result += " | TYPE : " + item.type;
+
+                if (rs.percent) {
+                    result += " | COEFFICIENT : " + rs.percent;
+                }
+
+                if (rs.period) {
+                    var date = new Date(null);
+                    date.setMilliseconds(rs.period);
+                    result += " | PERIOD : " + date.toISOString().substr(11, 8);
+                }
+
                 db.findDataReturnObjectFromCollection("StatusInfo", {endPoint: endPoint}).then((rsMsg2) => {
                     if (rsMsg2) {
                         result += " | IS_ACTIVE : " + rsMsg2.isActive;
-                        db.findDataReturnObjectFromCollection("PercentInfo", {endPoint: endPoint}).then((rsMsg) => {
-                            if (rsMsg) {
-                                result += " | COEFFICIENT : " + rsMsg.percent;
-                                bot.sendMessage(chatId, result);
-                            }
-                        }, doNothing);
-
-                        db.findDataReturnObjectFromCollection("PeriodInfo", {endPoint: endPoint}).then((rsMsg) => {
-                            if (rsMsg) {
-                                var date = new Date(null);
-                                date.setMilliseconds(rsMsg.period);
-                                result += " | PERIOD : " + date.toISOString().substr(11, 8);
-                                bot.sendMessage(chatId, result);
-                            }
-                        }, doNothing);
+                        bot.sendMessage(chatId, result);
+                    } else {
+                        bot.sendMessage(chatId, result);
                     }
                 }, doNothing);
             });
@@ -587,7 +498,7 @@ bot.onText(/\/addEndPoint (.+)/, (msg, match) => {
     const chatId = msg.chat.id;
     const fromId = msg.from.id;
 
-    if(!testIsManager(chatId, fromId)) {
+    if(!checkIsStartAndManager(chatId, fromId)) {
         return;
     }
 
@@ -598,10 +509,6 @@ bot.onText(/\/addEndPoint (.+)/, (msg, match) => {
         return;
     }
 
-    if (!testIsStart(chatId)) {
-        bot.sendMessage(chatId, "CHANEL CHUA DUOC BAT DAU. VUI LONG NHAP 'startBOT'");
-        return;
-    }
     if (checkExistEndPoint(endPoint)) {
         bot.sendMessage(chatId, "ENDPOINT NAY DA TON TAI!");
         return;
@@ -670,9 +577,10 @@ bot.onText(/\/addChanelPayment (.+) (.+)/, (msg, match) => {
     const chatId = msg.chat.id;
     const fromId = msg.from.id;
 
-    if(!testIsManager(chatId, fromId)) {
+    if(!checkIsStartAndManager(chatId, fromId)) {
         return;
     }
+
     const endPoint = match[1];
     const typePayment = match[2];
 
@@ -688,7 +596,7 @@ bot.onText(/\/addChanelPayment (.+) (.+)/, (msg, match) => {
         } else {
             if (typePayments.has(typePayment)) {
                 if (result.type == "PAYMENT") {
-                    db.findDataReturnObjectFromCollection(endPoint, {chanel: typePayment})
+                    db.findDataReturnObjectFromCollection(endPoint + "_Data", {chanel: typePayment})
                         .then((rs1) => {
                             if (!rs1) {
                                 doAddIdPaymentInServerGame(chatId, typePayment, endPoint);
@@ -710,7 +618,7 @@ bot.onText(/\/removeChanelPayment (.+) (.+)/, (msg, match) => {
     const chatId = msg.chat.id;
     const fromId = msg.from.id;
 
-    if(!testIsManager(chatId, fromId)) {
+    if(!checkIsStartAndManager(chatId, fromId)) {
         return;
     }
 
@@ -730,7 +638,7 @@ bot.onText(/\/removeChanelPayment (.+) (.+)/, (msg, match) => {
         } else {
             if (typePayments.has(typePayment)) {
                 if (result.type == "PAYMENT") {
-                    db.findDataReturnObjectFromCollection(endPoint, {chanel: typePayment})
+                    db.findDataReturnObjectFromCollection(endPoint + "_Data", {chanel: typePayment})
                         .then((rs1) => {
                             if (rs1) {
                                 doRemoveIdPaymentInServerGame(chatId, typePayment, endPoint);
@@ -750,20 +658,18 @@ bot.onText(/\/removeChanelPayment (.+) (.+)/, (msg, match) => {
 
 function doRemoveIdPaymentInServerGame(chatId, typePayment, endPoint) {
     "use strict";
-    db.findDataReturnObjectFromCollection("IpInfo", {groupId: chatId}).then((rs2) => {
-        if (rs2) {
+    db.findDataReturnObjectFromCollection("GroupChatInfo", {groupId: chatId}).then((rs2) => {
+        if (rs2.ip) {
             var ip = rs2.ip;
-            db.findDataReturnObjectFromCollection("PasscodeInfo", {groupId: chatId}).then((rs1) => {
-                if (rs1) {
-                    updateClient({
-                        paymentType: typePayment,
-                        passcode: rs1.passcode
-                    }, ip + ":" + serverPort + "/removePaymentType", chatId, (response) => {
-                        db.deleteDataFromCollection(endPoint, {chanel: typePayment});
-                        bot.sendMessage(chatId, "Remove Chanel Payment Thành công");
-                    });
-                }
-            }, doNothing);
+            if (rs2.passcode) {
+                updateClient({
+                    paymentType: typePayment,
+                    passcode: rs2.passcode
+                }, ip + ":" + serverPort + "/removePaymentType", chatId, (response) => {
+                    db.deleteDataFromCollection(endPoint + "_Data", {chanel: typePayment});
+                    bot.sendMessage(chatId, "Remove Chanel Payment Thành công");
+                });
+            }
         } else {
             bot.sendMessage(chatId, "CHƯA CÓ IP! CÓ THỂ THÊM IP SERVER BẰNG LỆNH '/addIp {ip}'");
         }
@@ -772,24 +678,22 @@ function doRemoveIdPaymentInServerGame(chatId, typePayment, endPoint) {
 
 function doAddIdPaymentInServerGame(chatId, typePayment, endPoint) {
     "use strict";
-    db.findDataReturnObjectFromCollection("IpInfo", {groupId: chatId}).then((rs2) => {
-        if (rs2) {
+    db.findDataReturnObjectFromCollection("GroupChatInfo", {groupId: chatId}).then((rs2) => {
+        if (rs2.ip) {
             var ip = rs2.ip;
-            db.findDataReturnObjectFromCollection("PasscodeInfo", {groupId: chatId}).then((rs1) => {
-                if (rs1) {
-                    updateClient({
-                        paymentType: typePayment,
-                        passcode: rs1.passcode
-                    }, ip + ":" + serverPort + "/addPaymentType", chatId, (response) => {
-                        db.insertDataToCollection(endPoint, {
-                            chanel: typePayment,
-                            numPayment: 0
-                        }).then((rs) => {
-                            bot.sendMessage(chatId, "Thêm Chanel Payment Thành công");
-                        }, doNothing);
-                    });
-                }
-            }, doNothing);
+            if (rs2.passcode) {
+                updateClient({
+                    paymentType: typePayment,
+                    passcode: rs2.passcode
+                }, ip + ":" + serverPort + "/addPaymentType", chatId, (response) => {
+                    db.insertDataToCollection(endPoint + "_Data", {
+                        chanel: typePayment,
+                        numPayment: 0
+                    }).then((rs) => {
+                        bot.sendMessage(chatId, "Thêm Chanel Payment Thành công");
+                    }, doNothing);
+                });
+            }
         } else {
             bot.sendMessage(chatId, "CHƯA CÓ IP! CÓ THỂ THÊM IP SERVER BẰNG LỆNH '/changeIp {ip}'");
         }
@@ -807,57 +711,35 @@ bot.onText(/\/cheatPayment (.+)/, (msg, match) => {
     const chatId = msg.chat.id;
     const fromId = msg.from.id;
 
-    if(!testIsManager(chatId, fromId)) {
+    if(!checkIsStartAndManager(chatId, fromId)) {
         return;
     }
 
     var paymentType = match[1];
-    db.findDataReturnObjectFromCollection("IpInfo", {groupId: chatId}).then((rs) => {
-        if (!rs) {
+    db.findDataReturnObjectFromCollection("GroupChatInfo", {groupId: chatId}).then((rs) => {
+        if (!rs.ip) {
             bot.sendMessage(chatId, "CHƯA TỒN TẠI IP");
         } else {
             var ip = rs.ip;
-            db.findDataReturnObjectFromCollection("PasscodeInfo", {groupId: chatId}).then((result) => {
-                if (!result) {
-                    bot.sendMessage(chatId, "CHƯA TỒN TẠI PASSCODE");
-                } else {
-                    updateClient({
-                        passcode: result.passcode,
-                        chanel: paymentType
-                    }, ip + ":" + serverPort + "/addCoin", chatId, (response) => {
-                        bot.sendMessage(chatId, "CHEAT THÀNH CÔNG!");
-                    });
-                }
-            }, doNothing);
+            if (!rs.passcode) {
+                bot.sendMessage(chatId, "CHƯA TỒN TẠI PASSCODE");
+            } else {
+                updateClient({
+                    passcode: rs.passcode,
+                    chanel: paymentType
+                }, ip + ":" + serverPort + "/addCoin", chatId, (response) => {
+                    bot.sendMessage(chatId, "CHEAT THÀNH CÔNG!");
+                });
+            }
         }
     }, doNothing);
 });
-
-//bot.onText(/\/cleanDataCcu (.+)/, (msg, match) => {
-//    "use strict";
-//    const chatId = msg.chat.id;
-//    var endPoint = match[1];
-//    db.findDataReturnObjectFromCollection("EndPointInfo", {endPoint: endPoint, groupId: chatId}).then((result) => {
-//        if (result) {
-//            var type = result.type;
-//            if (type == "CCU_AND_QUEUE") {
-//                var objectChoose = new Ccu(endPoint, chatId);
-//                objectChoose.removeData();
-//                bot.sendMessage(chatId, "Clean Dữ liệu CCU Thành công");
-//            } else {
-//                bot.sendMessage(chatId, "ENDPOINT BẠN VỪA NHẬP KHÔNG DÀNH CHO CCU");
-//            }
-//        } else {
-//            bot.sendMessage(chatId, "ENDPOINT NÀY KHÔNG CÓ TRONG CHANEL CỦA BẠN");
-//        }
-//    }, doNothing);
-//});
 
 bot.onText(/\/changeStatus (.+)/, (msg, match) => {
     "use strict";
     const chatId = msg.chat.id;
     const fromId = msg.from.id;
-    if(!testIsManager(chatId, fromId)) {
+    if(!checkIsStartAndManager(chatId, fromId)) {
         return;
     }
     var endPoint = match[1];
@@ -895,40 +777,36 @@ bot.onText(/\/stop/, (msg, match) => {
     "use strict";
     const chatId = msg.chat.id;
     const fromId = msg.from.id;
-    if(!testIsManager(chatId, fromId)) {
+    if(!checkIsStartAndManager(chatId, fromId)) {
         return;
     }
-    if (testIsStart(chatId)) {
-        var intervalPing = hashIntervalPingServer.get(chatId);
-        if (intervalPing) {
-            clearInterval(intervalPing);
-            hashIntervalPingServer.remove(chatId);
-        }
-        db.deleteDataFromCollection("PasscodeInfo", {groupId: chatId});
-        db.deleteDataFromCollection("IpInfo", {groupId: chatId});
-        db.deleteDataFromCollection("LastTimeRequest", {groupId: chatId});
-        db.findDataReturnArrayFromCollection("EndPointInfo", {groupId: chatId}).then((result) => {
-            if (result && result.length > 0) {
-                result.forEach((item) => {
-                    var endPoint = item.endPoint;
-                    var type = item.type;
-                    var objectChoose = getObjectChoose(type, endPoint, chatId);
-                    objectChoose.cleanAllData();
-                    if (type == "PAYMENT") {
-                        if (hashPaymentEndPoint.get(endPoint)) {
-                            var payment = hashPaymentEndPoint.get(endPoint);
-                            clearInterval(payment.seflInterval);
-                            hashPaymentEndPoint.remove(endPoint);
-                        }
-                    }
-                });
-            }
-        }, doNothing);
-        hashGroupChatId.remove(chatId);
-        db.deleteDataFromCollection("GroupChatInfo", {groupId: chatId});
-    } else {
-        bot.sendMessage(chatId, "CHANEL NÀY CHƯA TỒN TẠI TRÊN HỆ THỐNG");
+
+    var intervalPing = hashIntervalPingServer.get(chatId);
+    if (intervalPing) {
+        clearInterval(intervalPing);
+        hashIntervalPingServer.remove(chatId);
     }
+
+    db.findDataReturnArrayFromCollection("EndPointInfo", {groupId: chatId}).then((result) => {
+        if (result && result.length > 0) {
+            result.forEach((item) => {
+                var endPoint = item.endPoint;
+                var type = item.type;
+                var objectChoose = getObjectChoose(type, endPoint, chatId);
+                objectChoose.cleanAllData();
+                if (type == "PAYMENT") {
+                    if (hashPaymentEndPoint.get(endPoint)) {
+                        var payment = hashPaymentEndPoint.get(endPoint);
+                        clearInterval(payment.seflInterval);
+                        hashPaymentEndPoint.remove(endPoint);
+                    }
+                }
+            });
+        }
+    }, doNothing);
+    hashGroupChatId.remove(chatId);
+    db.deleteDataFromCollection("GroupChatInfo", {groupId: chatId});
+    bot.sendMessage(chatId, "DỪNG THÀNH CÔNG");
 });
 
 Array.prototype.remove = function (element) {
@@ -943,14 +821,17 @@ bot.on('callback_query', query => {
     "use strict";
     const chatId = query.message.chat.id;
     const fromId = query.from.id;
-    if(!testIsManager(chatId, fromId)) {
+    if(!checkIsStartAndManager(chatId, fromId)) {
         return;
     }
 
     var data = query.data.split(' ');
     var type = data[0];
     var endPoint = data[1];
-
+    if (checkExistEndPoint(endPoint)) {
+        bot.sendMessage(chatId, "ENDPOINT NAY DA TON TAI!");
+        return;
+    }
 
     console.log("ENDPOINT : " + endPoint);
     db.findDataReturnObjectFromCollection("EndPointInfo", {endPoint: endPoint}).then((rs) => {
@@ -958,11 +839,6 @@ bot.on('callback_query', query => {
             bot.sendMessage(chatId, "END POINT NÀY ĐÃ TỒN TẠI TRƯỚC ĐÓ! VUI LÒNG CHỌN ENDPOINT KHÁC");
         } else {
             listEndPoint.push(endPoint);
-            db.insertDataToCollection("EndPointInfo", {
-                groupId: chatId,
-                endPoint: endPoint,
-                type: type
-            }).then(doNothing, doNothing);
             bot.sendMessage(chatId, "THÊM ENDPOINT THÀNH CÔNG");
             addEndPoint(endPoint, chatId, type);
         }

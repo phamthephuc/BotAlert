@@ -26,12 +26,6 @@ module.exports = class CcuAndQueue {
         }, doNothing);
     }
 
-    removeData() {
-        "use strict";
-        this.ccu.removeData();
-        //this.queue.removeData();
-    }
-
     doCheckAlertWithEndPoint(index, data, endPoint) {
         "use strict";
         db.findDataReturnObjectFromCollection("StatusInfo", {endPoint: endPoint}).then((result) => {
@@ -51,6 +45,7 @@ module.exports = class CcuAndQueue {
 
     cleanAllData() {
         "use strict";
+        db.deleteDataFromCollection("StatusInfo", {endPoint: this.ccu.endPoint});
         this.ccu.cleanAllData();
         this.queue.cleanAllData();
     }

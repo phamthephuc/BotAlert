@@ -43,18 +43,13 @@ module.exports = class Queue {
     doCheckAlert(index, data) {
         "use strict";
         if (!data) return false;
-
         var systemQueue = data.systemQueue;
         var outGoingQueue = data.outGoingQueue;
         var extensionQueue = data.extensionQueue;
-
         if (systemQueue == undefined || outGoingQueue == undefined || extensionQueue == undefined) {
             return false;
         }
-
-        console.log("CHECK WITH QUEUE : " + JSON.stringify(data));
         this.checkNeedAlert(systemQueue, outGoingQueue, extensionQueue, this.chatId, this.endPoint);
-
         return true;
     }
 
@@ -91,8 +86,7 @@ module.exports = class Queue {
 
     cleanAllData() {
         "use strict";
-        db.deleteDataFromCollection("EndPointInfo", {groupId: this.chatId, endPoint: this.endPoint});
-        db.deleteDataFromCollection("StatusInfo", {endPoint: this.endPoint});
+        db.deleteDataFromCollection("EndPointInfo", {endPoint: this.endPoint});
     }
 
     checkNeedAlert(systemQueue, outGoingQueue, extensionQueue, chatId, endPoint) {

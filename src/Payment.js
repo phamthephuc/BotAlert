@@ -24,10 +24,9 @@ module.exports = class Payment {
 
     cleanAllData() {
         "use strict";
-        db.deleteDataFromCollection("EndPointInfo", {groupId: this.chatId, endPoint: this.endPoint});
-        db.dropCollection(this.endPoint);
-        db.deleteDataFromCollection("PeriodInfo", {endPoint: this.endPoint});
-        db.dropCollection("StatusInfo" , {endPoint: this.endPoint});
+        db.deleteDataFromCollection("EndPointInfo", {endPoint: this.endPoint});
+        db.dropCollection(this.endPoint + "_Data");
+        db.deleteDataFromCollection("StatusInfo" , {endPoint: this.endPoint});
     }
 
     initData(endPoint) {
@@ -35,9 +34,7 @@ module.exports = class Payment {
         this.lastTimeCheck = this.getCrrTimeInMilis();
         this.functionInterval = function () {
             db.findDataReturnObjectFromCollection("StatusInfo", {endPoint: endPoint}).then((result) => {
-                if (!result || !result.isActive) {
-                    console.log(endPoint + " ĐANG TRONG TRẠNG THÁI UNACTIVE");
-                } else {
+                if (result && result.isActive) {
                     db.findDataReturnArrayFromCollection(endPoint + "_Data", {}).then((rs) => {
                         if (rs && rs.length > 0) {
                             rs.forEach((item) => {
@@ -50,19 +47,9 @@ module.exports = class Payment {
                         }
                     }, doNothing);
                     this.lastTimeCheck = this.getCrrTimeInMilis();
-                    console.log("LAST TIME : " + this.lastTimeCheck);
                 }
             }, doNothing);
         }.bind(this);
-
-
-        //findDataReturnObjectFromCollection(endPoint + "_LastTimeCheck", {}).then((rs) => {
-        //    if (!rs) {
-        //        insertDataToCollection(endPoint + "_LastTimeCheck", {time: getCrrTimeInMilis()}).then(doNothing, doNothing);
-        //    } else {
-        //        updateDataFromCollection(endPoint + "_LastTimeCheck",{}, {time: getCrrTimeInMilis()});
-        //    }
-        //}, doNothing);
 
         db.findDataReturnObjectFromCollection("StatusInfo", {endPoint: endPoint}).then((result) => {
             if (!result) {
@@ -74,14 +61,13 @@ module.exports = class Payment {
             if (!rsMsg || rsMsg.length == 0) {
                 bot.sendMessage(this.chatId, "HIỆN TẠI CHƯA CÓ LOẠI PAYMENT NÀO ĐƯỢC CHỌN ĐỂ ALERT, VUI LÒNG THÊM!");
             }
-            db.findDataReturnObjectFromCollection("PeriodInfo", {endPoint: endPoint}).then((result) => {
-                if (result) {
+            db.findDataReturnObjectFromCollection("EndPointInfo", {endPoint: endPoint}).then((result) => {
+                if (result && result.period) {
                     var timeOut = result.period;
                     this.seflInterval = setInterval(this.functionInterval, timeOut, timeOut);
                 } else {
-                    db.insertDataToCollection("PeriodInfo", {endPoint: endPoint, period: defaultPeriod}).then((ok1) => {
-                        this.seflInterval = setInterval(this.functionInterval, defaultPeriod, defaultPeriod);
-                    }, doNothing);
+                    db.insertDataToCollection("EndPointInfo", {endPoint: endPoint, period: defaultPeriod, groupId: this.chatId, type: "PAYMENT"}).then(doNothing, doNothing);
+                    this.seflInterval = setInterval(this.functionInterval, defaultPeriod, defaultPeriod);
                 }
             }, doNothing);
         }, doNothing);
@@ -91,27 +77,26 @@ module.exports = class Payment {
     doChangePeriod(newDuration) {
         "use strict";
         clearInterval(this.seflInterval);
-        db.findDataReturnObjectFromCollection("PeriodInfo", {endPoint: this.endPoint}).then((result) => {
+        db.findDataReturnObjectFromCollection("EndPointInfo", {endPoint: this.endPoint}).then((result) => {
             if (result && result.period) {
                 var period = result.period;
                 var ownTime = period - (this.getCrrTimeInMilis() - this.lastTimeCheck);
                 var functionTimeOut = function () {
                     this.functionInterval();
-                    db.updateDataFromCollection("PeriodInfo", {endPoint: this.endPoint}, {period: newDuration});
-                    setInterval(this.functionInterval, newDuration, newDuration);
+                    db.updateDataFromCollection("EndPointInfo", {endPoint: this.endPoint}, {period: newDuration});
+                    this.seflInterval = setInterval(this.functionInterval, newDuration, newDuration);
                 }.bind(this);
-                setTimeout(functionTimeOut, ownTime);
+                this.seflInterval = setTimeout(functionTimeOut, ownTime);
             }
         }, doNothing());
     }
 
-    doCheckAlert(index, data) {
+    doCheckAlert(index, chanel) {
         "use strict";
-        console.log("add Payment");
-        db.findDataReturnObjectFromCollection(this.endPoint + "_Data", {chanel: data}).then((rs) => {
+        db.findDataReturnObjectFromCollection(this.endPoint + "_Data", {chanel: chanel}).then((rs) => {
             if (rs) {
                 var numPayment = rs.numPayment;
-                db.updateDataFromCollection(this.endPoint + "_Data", {chanel: data}, {chanel: data, numPayment: numPayment + 1});
+                db.updateDataFromCollection(this.endPoint + "_Data", {chanel: chanel}, {chanel: chanel, numPayment: numPayment + 1});
             } else {
                 return false;
             }
