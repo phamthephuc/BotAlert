@@ -43,7 +43,7 @@ module.exports = class Ccu {
             }
         }, doNothing);
 
-        //db.findDataReturnObjectFromCollection(endPoint, {}).then((result) => {
+        //db.findDataReturnObjectFromCollection(endPoint + "_Data", {}).then((result) => {
         //    if (!result) {
         //        this.fakeDataCCU();
         //    }
@@ -153,7 +153,7 @@ module.exports = class Ccu {
         listData.push(dataYesterday6);
 
         for (var i = 0; i <= 6; i++) {
-            db.insertManyDataToCollection(this.endPoint, listData[i]).then(doNothing, doNothing);
+            db.insertManyDataToCollection(this.endPoint + "_Data", listData[i]).then(doNothing, doNothing);
         }
     }
 
@@ -201,15 +201,15 @@ module.exports = class Ccu {
 
     removeData() {
         "use strict";
-        db.deleteDataFromCollection(this.endPoint, {});
+        db.deleteDataFromCollection(this.endPoint + "_Data", {});
         console.log("Remove Data Collection");
     }
 
     checkNeedAlert(index, data, chatId, endPoint, dayOfWeek) {
         "use strict";
-        db.findDataReturnObjectFromCollection(endPoint, {index: index, dayOfWeek: dayOfWeek}).then((rs) => {
+        db.findDataReturnObjectFromCollection(endPoint + "_Data", {index: index, dayOfWeek: dayOfWeek}).then((rs) => {
             if (rs) {
-                db.findDataReturnArrayFromCollection(endPoint, {index: index}).then((resutl3) => {
+                db.findDataReturnArrayFromCollection(endPoint + "_Data", {index: index}).then((resutl3) => {
                     var num = resutl3.length;
                     var sum = 0;
                     resutl3.forEach((item) => {
@@ -253,7 +253,7 @@ module.exports = class Ccu {
                         }, doNothing);
                     }
 
-                    db.updateDataFromCollection(endPoint, {index: index, dayOfWeek: dayOfWeek}, {
+                    db.updateDataFromCollection(endPoint + "_Data", {index: index, dayOfWeek: dayOfWeek}, {
                         index: index,
                         data: data,
                         dayOfWeek: dayOfWeek
@@ -262,7 +262,7 @@ module.exports = class Ccu {
 
             } else {
                 console.log("Data today in null");
-                db.insertDataToCollection(endPoint, {
+                db.insertDataToCollection(endPoint + "_Data", {
                     index: index,
                     data: data,
                     dayOfWeek: dayOfWeek
@@ -273,7 +273,7 @@ module.exports = class Ccu {
         });
 
         var yesterday = getDayBefore(dayOfWeek);
-        db.findDataReturnObjectFromCollection(endPoint, {index: index, dayOfWeek: yesterday}).then((result2) => {
+        db.findDataReturnObjectFromCollection(endPoint + "_Data", {index: index, dayOfWeek: yesterday}).then((result2) => {
             if (result2) {
                 var dataYesterday = result2.data;
                 console.log("ccu yesterday :" + JSON.stringify(dataYesterday));

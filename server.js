@@ -78,7 +78,7 @@ function getIpWithNormalFormat(ipClient) {
     }
 }
 
-var listGroupChatId = new HashMap();
+var hashGroupChatId = new HashMap();
 var listEndPoint = [];
 
 db.findDataReturnArrayFromCollection("GroupChatInfo", {}).then((result) => {
@@ -87,7 +87,7 @@ db.findDataReturnArrayFromCollection("GroupChatInfo", {}).then((result) => {
             "use strict";
             var groupId = itemChatId.groupId;
             var managerChatId = itemChatId.managerChatId;
-            listGroupChatId.set(groupId, managerChatId);
+            hashGroupChatId.set(groupId, managerChatId);
             db.findDataReturnObjectFromCollection("IpInfo", {groupId: groupId}).then((result1) => {
                 if (result1) {
                     var crrTime = getCrrTimeInMilis();
@@ -252,13 +252,13 @@ function getCrrTimeInMilis() {
 
 function testIsStart(chatId) {
     "use strict";
-    return listGroupChatId.has(chatId);
+    return hashGroupChatId.has(chatId);
 }
 
 function startChanel(chatId, managerChatId) {
     "use strict";
     if (!testIsStart(chatId)) {
-        listGroupChatId.set(chatId, managerChatId);
+        hashGroupChatId.set(chatId, managerChatId);
         db.insertDataToCollection("GroupChatInfo", {groupId: chatId, managerChatId: managerChatId});
         db.insertDataToCollection("PasscodeInfo", {passcode: md5(token), groupId: chatId}).then(doNothing, doNothing);
         return true;
@@ -268,6 +268,12 @@ function startChanel(chatId, managerChatId) {
 
 bot.onText(/\/changePasscode (.+)/, (msg, match) => {
     const chatId = msg.chat.id;
+    const fromId = msg.from.id;
+
+    if(!testIsManager(chatId, fromId)) {
+        return;
+    }
+
     var newPasscode = match[1];
     newPasscode = md5(newPasscode);
 
@@ -301,6 +307,12 @@ bot.onText(/\/changePasscode (.+)/, (msg, match) => {
 
 bot.onText(/\/changeIp (.+)/, (msg, match) => {
     const chatId = msg.chat.id;
+    const fromId = msg.from.id;
+
+    if(!testIsManager(chatId, fromId)) {
+        return;
+    }
+
     var newIp = match[1];
     newIp = getIpWithNormalFormat(newIp);
     if (newIp == null) {
@@ -337,6 +349,12 @@ bot.onText(/\/changeIp (.+)/, (msg, match) => {
 
 bot.onText(/\/changePeriod (.+) (.+)/, (msg, match) => {
     const chatId = msg.chat.id;
+    const fromId = msg.chat.id;
+
+    if(!testIsManager(chatId, fromId)) {
+        return;
+    }
+
     var newValueDuration = match[2];
 
     console.log(newValueDuration);
@@ -406,6 +424,12 @@ bot.onText(/\/changePeriod (.+) (.+)/, (msg, match) => {
 
 bot.onText(/\/changePercent (.+) (.+)/, (msg, match) => {
     const chatId = msg.chat.id;
+    const fromId = msg.from.id;
+
+    if(!testIsManager(chatId, fromId)) {
+        return;
+    }
+
     var newValue = match[2];
 
     console.log(newValue);
@@ -443,9 +467,12 @@ bot.onText(/\/changePercent (.+) (.+)/, (msg, match) => {
 
 bot.onText(/\/changeMaxTimesContiniousAlert (.+) (.+)/, (msg, match) => {
     const chatId = msg.chat.id;
+    const fromId = msg.from.id;
+    if(!testIsManager(chatId, fromId)) {
+        return;
+    }
     var newValue = match[2];
 
-    console.log(newValue);
     try {
         newValue = parseInt(newValue);
     } catch (e) {
@@ -482,28 +509,35 @@ bot.onText(/\/startBot/, (msg) => {
     const chatId = msg.chat.id;
     const managerChatId = msg.from.id;
     var result = startChanel(chatId, managerChatId);
-
     const resp = (result) ? "Start Success" : "Already started";
     bot.sendMessage(chatId, resp);
 });
 
-function testIsManager(chatId, managerId) {
+function testIsManager(chatId, fromId) {
     "use strict";
-    return (listGroupChatId.get(chatId) == managerId);
+    if (hashGroupChatId.get(chatId) == fromId) {
+        return true;
+    } else {
+        try {
+            bot.sendMessage(chatId, "BẠN KHÔNG CÓ QUYỀN QUẢN TRỊ");
+            bot.sendMessage(hashGroupChatId.get(chatId), "CÓ NGƯỜI MUỐN THAY ĐỔI TRÊN GROUP BẠN QUẢN TRỊ");
+        } catch (err) {
+        }
+        return false;
+    }
 }
 
 bot.onText(/\/listEndPoint/, (msg) => {
     const chatId = msg.chat.id;
-    const managerChatId = msg.from.id;
+    const fromId = msg.from.id;
 
     if (!testIsStart(chatId)) {
         bot.sendMessage(chatId, "GROUP CỦA BẠN CHƯA KÍCH HOẠT BOT");
         return;
     }
 
-    if (!testIsManager(chatId, managerChatId)) {
-        bot.sendMessage(chatId, "BẠN KHÔNG CÓ QUYỀN QUẢN TRỊ");
-        bot.sendMessage(listGroupChatId.get(chatId), "CÓ NGƯỜI MUỐN THAY ĐỔI TRÊN GROUP BẠN QUẢN TRỊ");
+    if(!testIsManager(chatId, fromId)) {
+        return;
     }
 
     db.findDataReturnArrayFromCollection("EndPointInfo", {groupId: chatId}).then((rs) => {
@@ -551,6 +585,12 @@ function checkExistEndPoint(endPoint) {
 
 bot.onText(/\/addEndPoint (.+)/, (msg, match) => {
     const chatId = msg.chat.id;
+    const fromId = msg.from.id;
+
+    if(!testIsManager(chatId, fromId)) {
+        return;
+    }
+
     const endPoint = match[1];
 
     if (!checkIsCorrectFormatEndPoint(endPoint)) {
@@ -628,6 +668,11 @@ bot.onText(/\/addEndPoint (.+)/, (msg, match) => {
 
 bot.onText(/\/addChanelPayment (.+) (.+)/, (msg, match) => {
     const chatId = msg.chat.id;
+    const fromId = msg.from.id;
+
+    if(!testIsManager(chatId, fromId)) {
+        return;
+    }
     const endPoint = match[1];
     const typePayment = match[2];
 
@@ -635,11 +680,6 @@ bot.onText(/\/addChanelPayment (.+) (.+)/, (msg, match) => {
         bot.sendMessage(chatId, "ĐỊNH DẠNG ENDPOINT KHÔNG ĐÚNG!");
         return;
     }
-
-    //if (!isNumber(typePayment)) {
-    //    bot.sendMessage(chatId, "ID TYPE PAYMENT PHẢI LÀ 1 SỐ");
-    //    return;
-    //}
 
     db.findDataReturnObjectFromCollection("EndPointInfo", {groupId: chatId, endPoint: endPoint}).then((result) => {
         "use strict";
@@ -668,6 +708,12 @@ bot.onText(/\/addChanelPayment (.+) (.+)/, (msg, match) => {
 
 bot.onText(/\/removeChanelPayment (.+) (.+)/, (msg, match) => {
     const chatId = msg.chat.id;
+    const fromId = msg.from.id;
+
+    if(!testIsManager(chatId, fromId)) {
+        return;
+    }
+
     const endPoint = match[1];
     const typePayment = match[2];
     console.log("come here");
@@ -676,11 +722,6 @@ bot.onText(/\/removeChanelPayment (.+) (.+)/, (msg, match) => {
         bot.sendMessage(chatId, "ĐỊNH DẠNG ENDPOINT KHÔNG ĐÚNG!");
         return;
     }
-
-    //if (!isNumber(typePayment)) {
-    //    bot.sendMessage(chatId, "ID TYPE PAYMENT PHẢI LÀ 1 SỐ");
-    //    return;
-    //}
 
     db.findDataReturnObjectFromCollection("EndPointInfo", {groupId: chatId, endPoint: endPoint}).then((result) => {
         "use strict";
@@ -764,6 +805,12 @@ function checkIsCorrectFormatEndPoint(endPoint) {
 bot.onText(/\/cheatPayment (.+)/, (msg, match) => {
     "use strict";
     const chatId = msg.chat.id;
+    const fromId = msg.from.id;
+
+    if(!testIsManager(chatId, fromId)) {
+        return;
+    }
+
     var paymentType = match[1];
     db.findDataReturnObjectFromCollection("IpInfo", {groupId: chatId}).then((rs) => {
         if (!rs) {
@@ -809,6 +856,10 @@ bot.onText(/\/cheatPayment (.+)/, (msg, match) => {
 bot.onText(/\/changeStatus (.+)/, (msg, match) => {
     "use strict";
     const chatId = msg.chat.id;
+    const fromId = msg.from.id;
+    if(!testIsManager(chatId, fromId)) {
+        return;
+    }
     var endPoint = match[1];
     changeStatus(chatId, endPoint);
 });
@@ -843,6 +894,10 @@ function changeStatus(chatId, endPoint, isRevert = true) {
 bot.onText(/\/stop/, (msg, match) => {
     "use strict";
     const chatId = msg.chat.id;
+    const fromId = msg.from.id;
+    if(!testIsManager(chatId, fromId)) {
+        return;
+    }
     if (testIsStart(chatId)) {
         var intervalPing = hashIntervalPingServer.get(chatId);
         if (intervalPing) {
@@ -869,7 +924,7 @@ bot.onText(/\/stop/, (msg, match) => {
                 });
             }
         }, doNothing);
-        listGroupChatId.remove(chatId);
+        hashGroupChatId.remove(chatId);
         db.deleteDataFromCollection("GroupChatInfo", {groupId: chatId});
     } else {
         bot.sendMessage(chatId, "CHANEL NÀY CHƯA TỒN TẠI TRÊN HỆ THỐNG");
@@ -887,6 +942,10 @@ Array.prototype.remove = function (element) {
 bot.on('callback_query', query => {
     "use strict";
     const chatId = query.message.chat.id;
+    const fromId = query.from.id;
+    if(!testIsManager(chatId, fromId)) {
+        return;
+    }
 
     var data = query.data.split(' ');
     var type = data[0];

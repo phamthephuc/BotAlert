@@ -38,14 +38,14 @@ module.exports = class Payment {
                 if (!result || !result.isActive) {
                     console.log(endPoint + " ĐANG TRONG TRẠNG THÁI UNACTIVE");
                 } else {
-                    db.findDataReturnArrayFromCollection(endPoint, {}).then((rs) => {
+                    db.findDataReturnArrayFromCollection(endPoint + "_Data", {}).then((rs) => {
                         if (rs && rs.length > 0) {
                             rs.forEach((item) => {
                                 var numPayment = item.numPayment;
                                 if (numPayment <= 0) {
                                     bot.sendMessage(this.chatId, "ĐÃ QUÁ LÂU MÀ CHƯA THẤY CÓ PAYMENT Ở CHANEL " + typePayments.get(item.chanel));
                                 }
-                                db.updateDataFromCollection(endPoint, {chanel: item.chanel}, {chanel: item.chanel, numPayment: 0});
+                                db.updateDataFromCollection(endPoint + "_Data", {chanel: item.chanel}, {chanel: item.chanel, numPayment: 0});
                             })
                         }
                     }, doNothing);
@@ -70,7 +70,7 @@ module.exports = class Payment {
             }
         }, doNothing);
 
-        db.findDataReturnArrayFromCollection(endPoint, {}).then((rsMsg) => {
+        db.findDataReturnArrayFromCollection(endPoint + "_Data", {}).then((rsMsg) => {
             if (!rsMsg || rsMsg.length == 0) {
                 bot.sendMessage(this.chatId, "HIỆN TẠI CHƯA CÓ LOẠI PAYMENT NÀO ĐƯỢC CHỌN ĐỂ ALERT, VUI LÒNG THÊM!");
             }
@@ -108,10 +108,10 @@ module.exports = class Payment {
     doCheckAlert(index, data) {
         "use strict";
         console.log("add Payment");
-        db.findDataReturnObjectFromCollection(this.endPoint, {chanel: data}).then((rs) => {
+        db.findDataReturnObjectFromCollection(this.endPoint + "_Data", {chanel: data}).then((rs) => {
             if (rs) {
                 var numPayment = rs.numPayment;
-                db.updateDataFromCollection(this.endPoint, {chanel: data}, {chanel: data, numPayment: numPayment + 1});
+                db.updateDataFromCollection(this.endPoint + "_Data", {chanel: data}, {chanel: data, numPayment: numPayment + 1});
             } else {
                 return false;
             }

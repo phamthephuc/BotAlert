@@ -22,22 +22,21 @@ module.exports = class Queue {
 
     initData(endPoint) {
         "use strict";
-        db.findDataReturnObjectFromCollection(endPoint, {type: "SystemQueue"}).then((rs) => {
+        db.findDataReturnObjectFromCollection(endPoint + "_Data", {type: "SystemQueue"}).then((rs) => {
             if (!rs) {
-                db.insertDataToCollection(endPoint, {type: "SystemQueue", timesIncrease: 0, lastData: 0}).then(doNothing, doNothing);
+                db.insertDataToCollection(endPoint + "_Data", {type: "SystemQueue", timesIncrease: 0, lastData: 0}).then(doNothing, doNothing);
             }
         }, doNothing);
-        db.findDataReturnObjectFromCollection(endPoint, {type: "OutGoingQueue"}).then((rs) => {
+        db.findDataReturnObjectFromCollection(endPoint + "_Data", {type: "OutGoingQueue"}).then((rs) => {
             if (!rs) {
-                db.insertDataToCollection(endPoint, {type: "OutGoingQueue", timesIncrease: 0, lastData: 0}).then(doNothing, doNothing);
+                db.insertDataToCollection(endPoint + "_Data", {type: "OutGoingQueue", timesIncrease: 0, lastData: 0}).then(doNothing, doNothing);
             }
         }, doNothing);
-        db.findDataReturnObjectFromCollection(endPoint, {type: "ExtensionQueue"}).then((rs) => {
+        db.findDataReturnObjectFromCollection(endPoint + "_Data", {type: "ExtensionQueue"}).then((rs) => {
             if (!rs) {
-                db.insertDataToCollection(endPoint, {type: "ExtensionQueue", timesIncrease: 0, lastData: 0}).then(doNothing, doNothing);
+                db.insertDataToCollection(endPoint + "_Data", {type: "ExtensionQueue", timesIncrease: 0, lastData: 0}).then(doNothing, doNothing);
             }
         }, doNothing);
-
 
     }
 
@@ -66,7 +65,7 @@ module.exports = class Queue {
 
     checkNeedAlertWithType(chatId, type, endPoint, crrValue) {
         "use strict";
-        db.findDataReturnObjectFromCollection(endPoint, {type: type}).then((rs) => {
+        db.findDataReturnObjectFromCollection(endPoint + "_Data", {type: type}).then((rs) => {
             if (rs) {
                 var oldValue = rs.lastData;
                 if (this.checkConditionAlert(crrValue, oldValue)) {
@@ -74,19 +73,19 @@ module.exports = class Queue {
                     if (timesIncrease >= timesInCreaseLimit) {
                         bot.sendMessage(chatId, this.stringAlert(type));
                     }
-                    db.updateDataFromCollection(endPoint, {type: type}, {
+                    db.updateDataFromCollection(endPoint + "_Data", {type: type}, {
                         type: type,
                         timesIncrease: timesIncrease + 1,
                         lastData: crrValue
                     });
                 } else {
-                    db.updateDataFromCollection(endPoint, {type: type}, {type: type, timesIncrease: 1, lastData: crrValue});
+                    db.updateDataFromCollection(endPoint + "_Data", {type: type}, {type: type, timesIncrease: 1, lastData: crrValue});
                 }
             } else {
-                db.insertDataToCollection(endPoint, {type: type, timesIncrease: 1, lastData: crrValue}).then(doNothing, doNothing);
+                db.insertDataToCollection(endPoint + "_Data", {type: type, timesIncrease: 1, lastData: crrValue}).then(doNothing, doNothing);
             }
         }, (err) => {
-            db.insertDataToCollection(endPoint, {type: type, timesIncrease: 1, lastData: crrValue}).then(doNothing, doNothing);
+            db.insertDataToCollection(endPoint + "_Data", {type: type, timesIncrease: 1, lastData: crrValue}).then(doNothing, doNothing);
         });
     }
 
