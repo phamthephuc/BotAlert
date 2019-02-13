@@ -79,9 +79,7 @@ module.exports = class Queue {
             } else {
                 db.insertDataToCollection(endPoint + "_Data", {type: type, timesIncrease: 1, lastData: crrValue}).then(doNothing, doNothing);
             }
-        }, (err) => {
-            db.insertDataToCollection(endPoint + "_Data", {type: type, timesIncrease: 1, lastData: crrValue}).then(doNothing, doNothing);
-        });
+        },doNothing);
     }
 
     cleanAllData() {

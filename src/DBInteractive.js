@@ -168,20 +168,21 @@ function dropCollection(nameCollection) {
                 } catch(err) {
                     console.log("HAVE SOME THING WRONG");
                 }
-            } else {
-                insertManyDataToCollection(nameCollection , {test : "ac"}).then((rs) => {
-                    var dbo = db.db(nameDB);
-                    try {
-                        dbo.collection(nameCollection).drop(function (err, delOK) {
-                            if (err) throw err;
-                            if (delOK) console.log("Collection " + nameCollection + " deleted!");
-                            db.close();
-                        });
-                    } catch(err) {
-                        console.log("HAVE SOME THING WRONG");
-                    }
-                }, doNothing);
             }
+            //else {
+            //    insertManyDataToCollection(nameCollection , {test : "ac"}).then((rs) => {
+            //        var dbo = db.db(nameDB);
+            //        try {
+            //            dbo.collection(nameCollection).drop(function (err, delOK) {
+            //                if (err) throw err;
+            //                if (delOK) console.log("Collection " + nameCollection + " deleted!");
+            //                db.close();
+            //            });
+            //        } catch(err) {
+            //            console.log("HAVE SOME THING WRONG");
+            //        }
+            //    }, doNothing);
+            //}
         }, doNothing);
     });
 

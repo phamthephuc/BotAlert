@@ -5,7 +5,7 @@ var db = require("./DBInteractive");
 const doNothing = require("./Util").doNothing;
 var bot = require("./../server").bot;
 var typePayments = require("./../server").typePayments;
-const defaultPeriod = 60 * 1000;
+const defaultPeriod = 60 * 60 * 1000;
 
 module.exports = class Payment {
     constructor(endPoint, chatId) {
